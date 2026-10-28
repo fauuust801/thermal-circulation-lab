@@ -3,61 +3,92 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>热力环流实验室 - 互动教学升级版</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>热力环流实验室 - 白板与手机全适配版</title>
 <style>
   * { box-sizing: border-box; }
   html, body {
-    margin: 0; padding: 0; height: 100%;
+    margin: 0; padding: 0; width: 100%; height: 100%;
     font-family: "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
     background: #eef3f8;
     color: #22303f;
     overflow: hidden;
   }
-  #app { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+  #app {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+  }
 
   #topbar {
-    position: absolute; top: 0; left: 0; right: 0; height: 46px;
-    background: #1e4e79; color: #fff; line-height: 46px; padding: 0 18px;
+    height: 52px;
+    background: #1e4e79;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    flex-shrink: 0;
   }
   #topbar .title { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
-  #topbar .sub { font-size: 13px; color: #b9d4ea; margin-left: 16px; }
+  #topbar .sub { font-size: 14px; color: #b9d4ea; font-weight: bold; }
 
-  #main { position: absolute; top: 46px; left: 0; right: 0; bottom: 0; }
+  #main {
+    flex: 1;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+  }
 
+  /* 铺满主页的左侧控制面板 */
   #sidebar {
-    position: absolute; top: 0; left: 0; bottom: 0; width: 34%;
-    padding: 8px 10px 10px 12px;
-    overflow-y: auto; overflow-x: hidden;
+    width: 36%;
+    height: 100%;
+    padding: 12px;
+    overflow-y: auto;
+    background: #f7fafc;
+    border-right: 2px solid #d3dee8;
+    flex-shrink: 0;
   }
+
+  /* 铺满主页的右侧舞台 */
   #stage {
-    position: absolute; top: 0; left: 34%; right: 0; bottom: 0;
-    padding: 8px;
+    flex: 1;
+    height: 100%;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef3f8;
   }
-  #svg { width: 100%; height: 100%; display: block; }
+  #svg { width: 100%; height: 100%; display: block; max-height: 100%; }
 
   .card {
     background: #fff;
     border: 1px solid #d3dee8;
     border-radius: 8px;
-    padding: 9px 12px 10px;
-    margin-bottom: 9px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
   }
   .ct {
-    font-size: 15px; font-weight: bold; color: #1e4e79;
-    margin-bottom: 7px;
+    font-size: 16px; font-weight: bold; color: #1e4e79;
+    margin-bottom: 8px;
     border-bottom: 2px solid #ebf5fb;
-    padding-bottom: 4px;
+    padding-bottom: 6px;
   }
 
   table.ctrl { border-collapse: collapse; width: 100%; }
-  table.ctrl td { padding: 3px 0; vertical-align: middle; }
-  table.ctrl td.lbl { width: 84px; font-size: 14px; color: #33475b; font-weight: bold; }
+  table.ctrl td { padding: 4px 0; vertical-align: middle; }
+  table.ctrl td.lbl { width: 90px; font-size: 15px; color: #33475b; font-weight: bold; }
 
   .seg {
     font-family: inherit;
-    font-size: 14px;
-    padding: 0 10px;
-    min-width: 70px; height: 38px;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 0 12px;
+    min-width: 76px; height: 42px;
     border: 1px solid #b9c9d8;
     background: #f7fafc;
     color: #33475b;
@@ -65,23 +96,24 @@
     cursor: pointer;
     margin-right: 6px;
   }
-  .seg.active-heat { background: #e8663c; border-color: #c8502a; color: #fff; font-weight: bold; }
-  .seg.active-cool { background: #3b7dd8; border-color: #2a60b0; color: #fff; font-weight: bold; }
-  .seg.active-intensity { background: #27ae60; border-color: #1e8449; color: #fff; font-weight: bold; }
+  .seg.active-heat { background: #e8663c; border-color: #c8502a; color: #fff; }
+  .seg.active-cool { background: #3b7dd8; border-color: #2a60b0; color: #fff; }
+  .seg.active-intensity { background: #27ae60; border-color: #1e8449; color: #fff; }
   .seg:disabled { opacity: 0.45; cursor: default; }
 
   .quiz-item {
-    margin-bottom: 8px;
-    padding-bottom: 6px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
     border-bottom: 1px dashed #e2e8f0;
   }
   .quiz-item:last-child { border-bottom: none; margin-bottom: 0; }
-  .qt { font-size: 13px; color: #33475b; line-height: 1.4; margin-bottom: 5px; font-weight: bold; }
-  .opts { font-size: 0; display: flex; gap: 4px; }
+  .qt { font-size: 15px; color: #22303f; line-height: 1.4; margin-bottom: 6px; font-weight: bold; }
+  .opts { font-size: 0; display: flex; gap: 6px; }
   .opt {
     font-family: inherit;
-    font-size: 13px;
-    height: 36px;
+    font-size: 14px;
+    font-weight: bold;
+    height: 40px;
     flex: 1;
     border: 1px solid #b9c9d8;
     background: #f7fafc;
@@ -92,79 +124,109 @@
     white-space: nowrap;
   }
   .opt.active {
-    background: #1e4e79; border-color: #163a5a; color: #fff; font-weight: bold;
+    background: #1e4e79; border-color: #163a5a; color: #fff;
   }
   .opt:disabled { opacity: 0.6; cursor: default; }
 
   #runBtn {
     display: block; width: 100%;
-    font-family: inherit; font-size: 17px; font-weight: bold;
-    height: 50px;
+    font-family: inherit; font-size: 18px; font-weight: bold;
+    height: 52px;
     border: none; border-radius: 8px;
     background: #2e8b57; color: #fff;
     cursor: pointer;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
   #runBtn:disabled { background: #b9c6cf; cursor: default; }
 
   #runHint {
-    font-size: 13px; text-align: center; color: #8a99a8;
-    margin: 0 0 8px; line-height: 1.4;
+    font-size: 14px; font-weight: bold; text-align: center; color: #66788a;
+    margin: 0 0 10px; line-height: 1.4;
   }
-  #runHint.ok { color: #2e8b57; font-weight: bold; }
+  #runHint.ok { color: #2e8b57; }
 
-  .btn-row { display: flex; gap: 6px; margin-bottom: 6px; }
+  .btn-row { display: flex; gap: 8px; margin-bottom: 8px; }
   #skipBtn, #resetBtn {
     flex: 1;
-    font-family: inherit; font-size: 14px;
-    height: 40px;
+    font-family: inherit; font-size: 15px; font-weight: bold;
+    height: 42px;
     border-radius: 6px; cursor: pointer;
   }
   #skipBtn { border: 1px solid #e0a800; background: #fff8e1; color: #8a6d00; }
   #resetBtn { border: 1px solid #b9c9d8; background: #fff; color: #33475b; }
 
+  /* 底部结果抽屉面板 */
   #result {
     position: absolute; left: 0; right: 0; bottom: 0;
     height: 0; overflow: hidden;
     background: #fff;
-    border-top: 2px solid #1e4e79;
-    z-index: 5;
-    transition: height 0.2s;
+    border-top: 3px solid #1e4e79;
+    z-index: 10;
+    transition: height 0.25s ease;
   }
   #resBar {
-    position: relative; height: 36px;
+    position: relative; height: 42px;
     background: #f2f7fb;
     border-bottom: 1px solid #dbe6ef;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
   }
   #resTitle {
-    position: absolute; left: 16px; top: 0; line-height: 36px;
-    font-size: 14px; font-weight: bold; color: #1e4e79;
+    font-size: 16px; font-weight: bold; color: #1e4e79;
   }
   #toggleRes {
-    position: absolute; right: 16px; top: 4px;
-    font-family: inherit; font-size: 12px;
-    height: 28px; padding: 0 12px;
+    font-family: inherit; font-size: 14px; font-weight: bold;
+    height: 32px; padding: 0 14px;
     border: 1px solid #b9c9d8; background: #fff;
     border-radius: 5px; cursor: pointer; color: #33475b;
   }
   #resBody {
-    position: absolute; left: 0; right: 0; top: 36px; bottom: 0;
-    padding: 8px 18px 12px;
+    position: absolute; left: 0; right: 0; top: 42px; bottom: 0;
+    padding: 12px 20px;
     overflow-y: auto;
   }
-  .resrow { font-size: 13px; line-height: 1.7; white-space: nowrap; }
-  .rq { display: inline-block; width: 32%; color: #33475b; }
+  .resrow { font-size: 14px; font-weight: bold; line-height: 1.8; white-space: nowrap; }
+  .rq { display: inline-block; width: 34%; color: #33475b; }
   .ry { display: inline-block; width: 24%; color: #4a5b6c; }
   .rm { display: inline-block; width: 16%; font-weight: bold; }
   .rr { display: inline-block; width: 24%; color: #4a5b6c; }
   .ok { color: #1e8449; }
   .no { color: #c0392b; }
   .resexp {
-    margin-top: 8px;
-    padding: 8px 12px;
+    margin-top: 10px;
+    padding: 10px 14px;
     background: #f6fafd;
-    border-left: 4px solid #1e4e79;
-    font-size: 13px; line-height: 1.7; color: #2c3e50;
+    border-left: 5px solid #1e4e79;
+    font-size: 14px; line-height: 1.8; color: #2c3e50;
+  }
+
+  /* 手机端竖屏媒体查询适配 (Mobile Responsive) */
+  @media (max-width: 900px) {
+    html, body { overflow: auto; height: auto; }
+    #app { height: auto; position: relative; }
+    #main {
+      flex-direction: column;
+      position: relative;
+      overflow: visible;
+    }
+    #sidebar {
+      width: 100%;
+      height: auto;
+      border-right: none;
+      border-bottom: 2px solid #d3dee8;
+    }
+    #stage {
+      width: 100%;
+      height: 420px;
+      position: relative;
+    }
+    #result {
+      position: relative;
+      height: auto !important;
+    }
   }
 </style>
 </head>
@@ -173,10 +235,11 @@
 
   <div id="topbar">
     <span class="title">热力环流实验室</span>
-    <span class="sub">地面冷热不均 ➔ 空气垂直运动 ➔ 气压差异 ➔ 水平气流 ➔ 形成热力环流</span>
+    <span class="sub">希沃白板教学互动版</span>
   </div>
 
   <div id="main">
+    <!-- 左侧控制面板（铺满一屏） -->
     <div id="sidebar">
 
       <div class="card">
@@ -195,9 +258,9 @@
           <tr>
             <td class="lbl">冷热强度</td>
             <td colspan="2">
-              <button id="btnIntWeak" class="seg" style="min-width:55px;">弱</button>
-              <button id="btnIntMed" class="seg" style="min-width:55px;">中</button>
-              <button id="btnIntStrong" class="seg" style="min-width:55px;">强</button>
+              <button id="btnIntWeak" class="seg" style="min-width:60px;">弱</button>
+              <button id="btnIntMed" class="seg" style="min-width:60px;">中</button>
+              <button id="btnIntStrong" class="seg" style="min-width:60px;">强</button>
             </td>
           </tr>
         </table>
@@ -217,11 +280,13 @@
       </div>
     </div>
 
+    <!-- 右侧动态舞台（铺满一屏） -->
     <div id="stage">
       <svg id="svg" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
   </div>
 
+  <!-- 底部结果抽屉面板 -->
   <div id="result">
     <div id="resBar">
       <span id="resTitle">预测与结果对照分析</span>
@@ -418,13 +483,12 @@
     tempTextA = el('text', { x: 240, y: 545, 'text-anchor': 'middle', 'font-size': 24, 'font-weight': 'bold' }, svg);
     tempTextB = el('text', { x: 660, y: 545, 'text-anchor': 'middle', 'font-size': 24, 'font-weight': 'bold' }, svg);
 
-    // 基准水平面虚线
     el('line', { x1: 40, y1: 140, x2: 860, y2: 140, stroke: '#9fb6c9', 'stroke-width': 1.5, 'stroke-dasharray': '6 4' }, svg);
     el('line', { x1: 40, y1: 380, x2: 860, y2: 380, stroke: '#9fb6c9', 'stroke-width': 1.5, 'stroke-dasharray': '6 4' }, svg);
 
-    t = el('text', { x: 50, y: 130, 'font-size': 13, fill: '#7d95a9' }, svg);
+    t = el('text', { x: 50, y: 130, 'font-size': 14, 'font-weight': 'bold', fill: '#7d95a9' }, svg);
     t.textContent = '高空基准面';
-    t = el('text', { x: 50, y: 370, 'font-size': 13, fill: '#7d95a9' }, svg);
+    t = el('text', { x: 50, y: 370, 'font-size': 14, 'font-weight': 'bold', fill: '#7d95a9' }, svg);
     t.textContent = '近地面基准面';
 
     isobarG = el('g', {}, svg);
@@ -433,64 +497,38 @@
     captionG = el('g', {}, svg);
   }
 
-  /* ============ 动态绘制等压面（等压线弯曲） ============ */
   function drawIsobars(fade) {
     clear(isobarG);
     var aH = (state.A === 'heat');
     var bH = (state.B === 'heat');
-    if (aH === bH) return; // 均匀受热时等压面水平
+    if (aH === bH) return;
 
     var g = el('g', {}, isobarG);
     if (fade) g.setAttribute('opacity', '0');
 
-    // 近地面等压面：受热区(低压)向下凹陷，冷却区(高压)向上凸起
-    // 高空等压面：受热区(高压)向上凸起，冷却区(低压)向下凹陷
     var pathDataSurf = '';
     var pathDataUpper = '';
 
     if (aH) {
-      // A受热 B冷却：近地面A凹陷(向下变大y)，B凸起(向上变小y)
-      pathDataSurf = 'M 100 380 Q 240 410, 450 380 T 800 380';
-      // 高空A凸起(向上变小y)，B凹陷(向下变大y)
-      pathDataUpper = 'M 100 140 Q 240 110, 450 140 T 800 140';
+      pathDataSurf = 'M 100 380 Q 240 415, 450 380 T 800 380';
+      pathDataUpper = 'M 100 140 Q 240 105, 450 140 T 800 140';
     } else {
-      // A冷却 B受热：近地面A凸起，B凹陷
-      pathDataSurf = 'M 100 380 Q 240 350, 450 380 T 800 380';
-      // 高空A凹陷，B凸起
-      pathDataUpper = 'M 100 140 Q 240 170, 450 140 T 800 140';
+      pathDataSurf = 'M 100 380 Q 240 345, 450 380 T 800 380';
+      pathDataUpper = 'M 100 140 Q 240 175, 450 140 T 800 140';
     }
 
-    var lineSurf = el('path', {
-      d: pathDataSurf,
-      stroke: '#e67e22',
-      'stroke-width': '2.5',
-      'stroke-dasharray': '5 5',
-      fill: 'none'
-    }, g);
+    el('path', { d: pathDataSurf, stroke: '#e67e22', 'stroke-width': '3', 'stroke-dasharray': '6 6', fill: 'none' }, g);
+    el('path', { d: pathDataUpper, stroke: '#3498db', 'stroke-width': '3', 'stroke-dasharray': '6 6', fill: 'none' }, g);
 
-    var lineUpper = el('path', {
-      d: pathDataUpper,
-      stroke: '#3498db',
-      'stroke-width': '2.5',
-      'stroke-dasharray': '5 5',
-      fill: 'none'
-    }, g);
-
-    // 添加等压面文字标签
-    var tSurf = el('text', { x: 730, y: aH ? 365 : 395, 'font-size': '12', fill: '#e67e22', 'font-weight': 'bold' }, g);
+    var tSurf = el('text', { x: 710, y: aH ? 360 : 405, 'font-size': '13', fill: '#e67e22', 'font-weight': 'bold' }, g);
     tSurf.textContent = '近地面等压面弯曲';
 
-    var tUpper = el('text', { x: 730, y: aH ? 125 : 155, 'font-size': '12', fill: '#3498db', 'font-weight': 'bold' }, g);
+    var tUpper = el('text', { x: 710, y: aH ? 120 : 165, 'font-size': '13', fill: '#3498db', 'font-weight': 'bold' }, g);
     tUpper.textContent = '高空等压面弯曲';
 
-    if (fade) {
-      fadeTo(g, 0.85, 300);
-    } else {
-      g.setAttribute('opacity', '0.85');
-    }
+    if (fade) { fadeTo(g, 0.9, 300); } else { g.setAttribute('opacity', '0.9'); }
   }
 
-  /* ============ 动画控制与速度差实现 ============ */
   function startGlowAnimation() {
     if (glowTimer) clearInterval(glowTimer);
     glowTimer = setInterval(function() {
@@ -516,29 +554,21 @@
   }
 
   function stopAnim() {
-    if (animTimer) {
-      clearInterval(animTimer);
-      animTimer = null;
-    }
-    if (glowTimer) {
-      clearInterval(glowTimer);
-      glowTimer = null;
-    }
+    if (animTimer) { clearInterval(animTimer); animTimer = null; }
+    if (glowTimer) { clearInterval(glowTimer); glowTimer = null; }
   }
 
   function tick() {
     var i, p, pos;
     for (i = 0; i < particles.length; i++) {
       p = particles[i];
-      
-      // 核心要求2：受热/上升区域附近粒子运动更快，冷却/下沉区域粒子运动更慢
       var dynamicSpeed = p.baseSpeed;
       if (p.zoneType === 'rising') {
-        dynamicSpeed *= 2.2; // 受热膨胀上升，速度快、充满冲力
+        dynamicSpeed *= 2.2;
       } else if (p.zoneType === 'sinking') {
-        dynamicSpeed *= 0.5; // 冷却收缩下沉，运动舒缓、速度慢
+        dynamicSpeed *= 0.5;
       } else {
-        dynamicSpeed *= 1.2; // 水平气流
+        dynamicSpeed *= 1.2;
       }
 
       p.phase += dynamicSpeed * 3.5;
@@ -562,7 +592,7 @@
   function getBaseSpeed() {
     if (state.intensity === 'weak') return 1.0;
     if (state.intensity === 'strong') return 2.8;
-    return 1.8; // medium
+    return 1.8;
   }
 
   function addVerticalParticles(x, up, count) {
@@ -570,9 +600,9 @@
     var path = buildPath(pts, false);
     var i, c;
     var spd = getBaseSpeed();
-    var zType = up ? 'rising' : 'sinking'; // 上升为受热区(快)，下沉为冷却区(慢)
+    var zType = up ? 'rising' : 'sinking';
     for (i = 0; i < count; i++) {
-      c = el('circle', { r: up ? 6 : 5, fill: up ? '#e8663c' : '#3b7dd8', opacity: '0.9' }, flowG);
+      c = el('circle', { r: up ? 6.5 : 5.5, fill: up ? '#e8663c' : '#3b7dd8', opacity: '0.95' }, flowG);
       particles.push({ el: c, path: path, phase: path.total * i / count, baseSpeed: spd, zoneType: zType });
     }
     ensureAnim();
@@ -584,7 +614,7 @@
     var i, c;
     var spd = getBaseSpeed();
     for (i = 0; i < count; i++) {
-      c = el('circle', { r: 5.5, fill: '#3d7fd6', opacity: '0.9' }, flowG);
+      c = el('circle', { r: 6, fill: '#3d7fd6', opacity: '0.95' }, flowG);
       particles.push({ el: c, path: path, phase: path.total * i / count, baseSpeed: spd, zoneType: 'horiz' });
     }
     ensureAnim();
@@ -594,11 +624,10 @@
     var pts = roundedRectPoints(240, 140, 660, 380, 50);
     if (!cw) { pts.reverse(); }
     var path = buildPath(pts, true);
-    var i, c, zType;
+    var i, c;
     var spd = getBaseSpeed();
     for (i = 0; i < count; i++) {
-      // 动态判断当前粒子位于哪个象限（左侧上升还是右侧下沉等）
-      c = el('circle', { r: 5.5, fill: '#2f6fc4', opacity: '0.9' }, flowG);
+      c = el('circle', { r: 6, fill: '#2f6fc4', opacity: '0.95' }, flowG);
       particles.push({ el: c, path: path, phase: path.total * i / count, baseSpeed: spd, zoneType: 'loop' });
     }
     ensureAnim();
@@ -615,12 +644,12 @@
 
   function showCaption(text) {
     clear(captionG);
-    var w = 520, h = 42;
+    var w = 560, h = 46;
     var x = 450 - w / 2, y = 12;
     var bg = el('rect', { x: x, y: y, width: w, height: h, rx: 8, fill: '#1e4e79', opacity: '0' }, captionG);
-    var t = el('text', { x: 450, y: y + 27, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold', fill: '#fff', opacity: '0' }, captionG);
+    var t = el('text', { x: 450, y: y + 29, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 'bold', fill: '#fff', opacity: '0' }, captionG);
     t.textContent = text;
-    fadeTo(bg, 0.92, 200);
+    fadeTo(bg, 0.95, 200);
     fadeTo(t, 1, 200);
   }
 
@@ -641,18 +670,18 @@
   }
 
   function addPressureLabel(x, y, text, isHigh, fade) {
-    var w = 88, h = 32;
+    var w = 96, h = 36;
     var g = el('g', {}, labelG);
     if (fade) { g.setAttribute('opacity', '0'); }
     el('rect', {
       x: x - w / 2, y: y - h / 2, width: w, height: h, rx: 6,
       fill: '#ffffff',
       stroke: isHigh ? '#c0392b' : '#2471a3',
-      'stroke-width': 2.5
+      'stroke-width': 3
     }, g);
     var t = el('text', {
-      x: x, y: y + 5, 'text-anchor': 'middle',
-      'font-size': 17, 'font-weight': 'bold',
+      x: x, y: y + 6, 'text-anchor': 'middle',
+      'font-size': 18, 'font-weight': 'bold',
       fill: isHigh ? '#c0392b' : '#2471a3'
     }, g);
     t.textContent = text;
@@ -674,17 +703,17 @@
   function arrow(x, y, dir, fade, color) {
     var pts, s;
     if (dir === 'up') {
-      pts = [[x, y - 12], [x - 10, y + 8], [x + 10, y + 8]];
+      pts = [[x, y - 14], [x - 12, y + 10], [x + 12, y + 10]];
     } else if (dir === 'down') {
-      pts = [[x, y + 12], [x - 10, y - 8], [x + 10, y - 8]];
+      pts = [[x, y + 14], [x - 12, y - 10], [x + 12, y - 10]];
     } else if (dir === 'left') {
-      pts = [[x - 12, y], [x + 8, y - 10], [x + 8, y + 10]];
+      pts = [[x - 14, y], [x + 10, y - 12], [x + 10, y + 12]];
     } else {
-      pts = [[x + 12, y], [x - 8, y - 10], [x - 8, y + 10]];
+      pts = [[x + 14, y], [x - 10, y - 12], [x - 10, y + 12]];
     }
     s = pts[0][0] + ',' + pts[0][1] + ' ' + pts[1][0] + ',' + pts[1][1] + ' ' + pts[2][0] + ',' + pts[2][1];
-    var poly = el('polygon', { points: s, fill: color || '#3d7fd6', opacity: fade ? '0' : '0.85' }, flowG);
-    if (fade) { fadeTo(poly, 0.85, 250); }
+    var poly = el('polygon', { points: s, fill: color || '#3d7fd6', opacity: fade ? '0' : '0.9' }, flowG);
+    if (fade) { fadeTo(poly, 0.9, 250); }
     return poly;
   }
 
@@ -747,7 +776,6 @@
     $('btnIntMed').className = 'seg' + (intName === 'medium' ? ' active-intensity' : '');
     $('btnIntStrong').className = 'seg' + (intName === 'strong' ? ' active-intensity' : '');
 
-    // 核心需求3改进：模拟运行完成后，不禁用条件按钮，允许学生自由修改并直接实时查看效果！
     var locked = sim.playing;
     $('btnAh').disabled = locked;
     $('btnAc').disabled = locked;
@@ -771,7 +799,7 @@
 
     var hint = $('runHint');
     if (sim.done) {
-      hint.innerHTML = '您现在可以直接修改上方A/B区冷热或强度，白板动画将实时响应！';
+      hint.innerHTML = '您现在可以直接修改上方A/B区条件，白板动画将实时响应！';
       hint.className = 'ok';
     } else if (sim.playing) {
       hint.innerHTML = '正在演示因果演练，请观察舞台';
@@ -811,7 +839,7 @@
       if (same) {
         showCaption('③ 气压同时变化，同一水平面无气压差');
       } else {
-        showCaption('③ 形成气压差并带动高低空等压面弯曲（见虚线等压面）');
+        showCaption('③ 形成气压差并带动高低空等压面弯曲（见虚线）');
       }
       buildLabels(true);
       drawIsobars(true);
@@ -872,7 +900,7 @@
 
     startGlowAnimation();
     arrow(240, 260, aH ? 'up' : 'down', false, aH ? '#e8663c' : '#3b7dd8');
-    arrow(660, 260, bH ? 'up' : 'down', false, bH ? '#e8663c' : '#3b7dd8');
+    arrow(660, 260, bH ? 'up' : 'down', false, bH ? '#3498db' : '#3498db');
 
     if (!same) {
       var cw = aH;
@@ -932,7 +960,7 @@
   }
 
   function openResultDrawer() {
-    var h = 0, targetH = 190;
+    var h = 0, targetH = 210;
     var iv = setInterval(function () {
       h += 15;
       if (h >= targetH) { h = targetH; clearInterval(iv); }
@@ -1039,7 +1067,6 @@
     updateUI();
   }
 
-  /* ============ 核心修改：当模拟已完成后，用户再次点击修改条件时，支持即时重新演练动画 ============ */
   function handleConditionChange(type, val) {
     if (sim.playing) return;
     if (type === 'A') state.A = val;
@@ -1048,11 +1075,10 @@
 
     updateUI();
 
-    // 如果之前已经完成了模型运行，用户更改了条件，则无缝实时刷新场景与动画，无需重新答题
     if (sim.done) {
       clearTimers();
       clearScene();
-      buildFinalScene(); // 或直接实时刷新运行
+      buildFinalScene();
     }
   }
 
