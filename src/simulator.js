@@ -1,3 +1,4 @@
+// src/simulator.js
 const NS = 'http://www.w3.org/2000/svg';
 
 let svg, terrainGroup, tempTextA, tempTextB;
@@ -114,9 +115,9 @@ export function getTerrainConfig(mode, scenarioKey, SCENARIOS) {
   if (tType === 'mountain') {
     return {
       type: 'mountain',
-      ax: 450, ay: 500, aLabelY: 535, tempAy: 565,
-      bx: 225, by: 430, bLabelY: 410, tempBy: 385,
-      surfY: 360, upperY: 130
+      ax: 450, ay: 510, aLabelY: 545, tempAy: 575,
+      bx: 220, by: 410, bLabelY: 385, tempBy: 360,
+      surfY: 340, upperY: 130
     };
   }
   return {
@@ -151,11 +152,8 @@ export function renderTerrain(mode, scenarioKey, SCENARIOS, state, sim) {
   var glowOpacity = (sim.playing || sim.done) ? '0.25' : '0';
 
   if (cfg.type === 'sealand') {
-    // 左侧海洋，右侧陆地，无缝接壤
     el('rect', { x: 0, y: 460, width: 450, height: 140, fill: '#85c1e9', stroke: '#2980b9', 'stroke-width': 2 }, terrainGroup);
     el('rect', { x: 450, y: 460, width: 450, height: 140, fill: '#d5dbdb', stroke: '#a8987c', 'stroke-width': 2 }, terrainGroup);
-    
-    // 海洋水波纹
     for (var w = 80; w < 400; w += 90) {
       el('path', { d: 'M ' + w + ' 510 Q ' + (w+20) + ' 500, ' + (w+40) + ' 510', stroke: '#fff', 'stroke-width': '2.5', fill: 'none', opacity: '0.6' }, terrainGroup);
     }
@@ -177,27 +175,27 @@ export function renderTerrain(mode, scenarioKey, SCENARIOS, state, sim) {
     tempTextB = el('text', { x: cfg.bx, y: cfg.tempBy, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 'bold' }, terrainGroup);
 
   } else if (cfg.type === 'mountain') {
-    // 3D-like 山脉峡谷地形剖面
-    var gPath = 'M 0 600 L 0 400 Q 225 480, 450 530 Q 675 480, 900 400 L 900 600 Z';
-    el('path', { d: gPath, fill: '#c2b292', stroke: '#8c7853', 'stroke-width': 3 }, terrainGroup);
+    var mountainPath = 'M 0 420 Q 225 460, 450 530 Q 675 460, 900 420 L 900 600 L 0 600 Z';
+    el('path', { d: mountainPath, fill: '#d2b48c', stroke: '#8c7853', 'stroke-width': 3 }, terrainGroup);
 
     el('line', { x1: 40, y1: cfg.upperY, x2: 860, y2: cfg.upperY, stroke: '#9fb6c9', 'stroke-width': 1.5, 'stroke-dasharray': '6 4' }, terrainGroup);
-    el('line', { x1: 100, y1: cfg.surfY, x2: 800, y2: cfg.surfY, stroke: '#9fb6c9', 'stroke-width': 1.5, 'stroke-dasharray': '6 4' }, terrainGroup);
 
-    glowA = el('circle', { cx: cfg.ax, cy: cfg.ay, r: 40, fill: aH ? '#e74c3c' : '#3498db', opacity: glowOpacity }, terrainGroup);
-    glowB = el('circle', { cx: cfg.bx, cy: cfg.by, r: 35, fill: bH ? '#e74c3c' : '#3498db', opacity: glowOpacity }, terrainGroup);
+    glowA = el('circle', { cx: 450, cy: 490, r: 40, fill: aH ? '#e74c3c' : '#3498db', opacity: glowOpacity }, terrainGroup);
+    glowB = el('circle', { cx: 220, cy: 420, r: 35, fill: bH ? '#e74c3c' : '#3498db', opacity: glowOpacity }, terrainGroup);
+    el('circle', { cx: 680, cy: 420, r: 35, fill: bH ? '#e74c3c' : '#3498db', opacity: glowOpacity }, terrainGroup);
 
-    var sc2 = SCENARIOS[scenarioKey];
-    var ta = el('text', { x: cfg.ax, y: cfg.aLabelY, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold', fill: '#5b4a33' }, terrainGroup);
-    ta.textContent = sc2.zoneALabel;
-    var tb = el('text', { x: cfg.bx, y: cfg.bLabelY, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold', fill: '#5b4a33' }, terrainGroup);
-    tb.textContent = sc2.zoneBLabel;
+    var scMountain = SCENARIOS[scenarioKey];
+    var ta = el('text', { x: 450, y: 565, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold', fill: '#5b4a33' }, terrainGroup);
+    ta.textContent = scMountain.zoneALabel;
+    var tb = el('text', { x: 220, y: 385, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 'bold', fill: '#5b4a33' }, terrainGroup);
+    tb.textContent = scMountain.zoneBLabel + ' (左)';
+    var tc = el('text', { x: 680, y: 385, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 'bold', fill: '#5b4a33' }, terrainGroup);
+    tc.textContent = scMountain.zoneBLabel + ' (右)';
 
-    tempTextA = el('text', { x: cfg.ax, y: cfg.tempAy, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 'bold' }, terrainGroup);
-    tempTextB = el('text', { x: cfg.bx, y: cfg.tempBy, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 'bold' }, terrainGroup);
+    tempTextA = el('text', { x: 450, y: 590, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold' }, terrainGroup);
+    tempTextB = el('text', { x: 220, y: 355, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold' }, terrainGroup);
 
   } else {
-    // 平地模式 (基础模式 / 城市热岛)
     el('rect', { x: 0, y: 460, width: 900, height: 140, fill: '#d5dbdb' }, terrainGroup);
     el('line', { x1: 0, y1: 460, x2: 900, y2: 460, stroke: '#a8987c', 'stroke-width': 2 }, terrainGroup);
 
@@ -258,11 +256,11 @@ function drawIsobars(state, mode, scenarioKey, SCENARIOS, fade) {
 
   if (cfg.type === 'mountain') {
     if (aH) {
-      pathDataSurf = 'M 100 360 Q 450 395, 800 360';
-      pathDataUpper = 'M 100 130 Q 450 100, 800 130';
+      pathDataSurf = 'M 100 380 Q 450 330, 800 380';
+      pathDataUpper = 'M 100 130 Q 450 95, 800 130';
     } else {
-      pathDataSurf = 'M 100 360 Q 450 325, 800 360';
-      pathDataUpper = 'M 100 130 Q 450 160, 800 130';
+      pathDataSurf = 'M 100 380 Q 450 420, 800 380';
+      pathDataUpper = 'M 100 130 Q 450 165, 800 130';
     }
   } else {
     if (aH) {
@@ -381,23 +379,36 @@ function addHorizParticles(x1, x2, y, count, intensity) {
 
 function addLoopParticles(cw, count, intensity, mode, scenarioKey, SCENARIOS) {
   var cfg = getTerrainConfig(mode, scenarioKey, SCENARIOS);
-  var pts = [];
+  var pathsList = [];
+
   if (cfg.type === 'mountain') {
-    pts = [
-      [450, 500], [330, 465], [225, 430],
-      [225, 130], [450, 130], [675, 130],
-      [675, 430], [570, 465], [450, 500]
+    var ptsLeft = [
+      [450, 480], [450, 130], [220, 130], [220, 420], [335, 460], [450, 480]
     ];
+    var ptsRight = [
+      [450, 480], [450, 130], [680, 130], [680, 420], [565, 460], [450, 480]
+    ];
+
+    if (!cw) {
+      ptsLeft.reverse();
+      ptsRight.reverse();
+    }
+
+    pathsList.push(buildPath(ptsLeft, true));
+    pathsList.push(buildPath(ptsRight, true));
   } else {
-    pts = roundedRectPoints(cfg.ax, cfg.upperY, cfg.bx, cfg.surfY, 50);
+    var pts = roundedRectPoints(cfg.ax, cfg.upperY, cfg.bx, cfg.surfY, 50);
+    if (!cw) { pts.reverse(); }
+    pathsList.push(buildPath(pts, true));
   }
-  if (!cw) { pts.reverse(); }
-  var path = buildPath(pts, true);
-  var i, c;
+
   var spd = getBaseSpeed(intensity);
-  for (i = 0; i < count; i++) {
-    c = el('circle', { r: 6, fill: '#2f6fc4', opacity: '0.95' }, flowG);
-    particles.push({ el: c, path: path, phase: path.total * i / count, baseSpeed: spd, zoneType: 'loop' });
+  for (let pi = 0; pi < pathsList.length; pi++) {
+    let path = pathsList[pi];
+    for (var i = 0; i < count; i++) {
+      var c = el('circle', { r: 6, fill: '#2f6fc4', opacity: '0.95' }, flowG);
+      particles.push({ el: c, path: path, phase: path.total * i / count, baseSpeed: spd, zoneType: 'loop' });
+    }
   }
   ensureAnim();
 }
@@ -457,11 +468,17 @@ function buildLabels(state, mode, scenarioKey, SCENARIOS, fade) {
   var bH = (state.B === 'heat');
   var cfg = getTerrainConfig(mode, scenarioKey, SCENARIOS);
 
-  addPressureLabel(cfg.ax, cfg.type === 'mountain' ? 465 : 420, aH ? '低压' : '高压', !aH, fade);
-  addPressureLabel(cfg.ax, cfg.upperY - 40, aH ? '高压' : '低压', aH, fade);
-
-  addPressureLabel(cfg.bx, cfg.type === 'mountain' ? 395 : 420, bH ? '低压' : '高压', !bH, fade);
-  addPressureLabel(cfg.bx, cfg.upperY - 40, bH ? '高压' : '低压', !bH, fade);
+  if (cfg.type === 'mountain') {
+    addPressureLabel(450, 440, aH ? '低压' : '高压', !aH, fade);
+    addPressureLabel(450, 95, aH ? '高压' : '低压', aH, fade);
+    addPressureLabel(220, 465, bH ? '低压' : '高压', !bH, fade);
+    addPressureLabel(680, 465, bH ? '低压' : '高压', !bH, fade);
+  } else {
+    addPressureLabel(cfg.ax, 420, aH ? '低压' : '高压', !aH, fade);
+    addPressureLabel(cfg.ax, cfg.upperY - 40, aH ? '高压' : '低压', aH, fade);
+    addPressureLabel(cfg.bx, 420, bH ? '低压' : '高压', !bH, fade);
+    addPressureLabel(cfg.bx, cfg.upperY - 40, bH ? '高压' : '低压', bH, fade);
+  }
 }
 
 function arrow(x, y, dir, fade, color) {
@@ -504,10 +521,17 @@ export function scheduleStages(state, mode, scenarioKey, SCENARIOS, onComplete) 
 
   timeouts.push(setTimeout(function () {
     showCaption('② 空气垂直运动（受热区膨胀上升冲力强，冷却区收缩下沉平缓）');
-    arrow(cfg.ax, cfg.type === 'mountain' ? 460 : 260, aH ? 'up' : 'down', true, aH ? '#e8663c' : '#3b7dd8');
-    addVerticalParticles(cfg.ax, cfg.type === 'mountain' ? 500 : cfg.surfY, cfg.upperY, aH, 6, state.intensity);
-    arrow(cfg.bx, cfg.type === 'mountain' ? 390 : 260, bH ? 'up' : 'down', true, bH ? '#e8663c' : '#3b7dd8');
-    addVerticalParticles(cfg.bx, cfg.type === 'mountain' ? 430 : cfg.surfY, cfg.upperY, bH, 6, state.intensity);
+    if (cfg.type === 'mountain') {
+      arrow(450, 460, aH ? 'up' : 'down', true, aH ? '#e8663c' : '#3b7dd8');
+      addVerticalParticles(450, 510, 160, aH, 6, state.intensity);
+      arrow(220, 370, bH ? 'up' : 'down', true, bH ? '#e8663c' : '#3b7dd8');
+      arrow(680, 370, bH ? 'up' : 'down', true, bH ? '#e8663c' : '#3b7dd8');
+    } else {
+      arrow(cfg.ax, 260, aH ? 'up' : 'down', true, aH ? '#e8663c' : '#3b7dd8');
+      addVerticalParticles(cfg.ax, cfg.surfY, cfg.upperY, aH, 6, state.intensity);
+      arrow(cfg.bx, 260, bH ? 'up' : 'down', true, bH ? '#e8663c' : '#3b7dd8');
+      addVerticalParticles(cfg.bx, cfg.surfY, cfg.upperY, bH, 6, state.intensity);
+    }
   }, 900));
 
   timeouts.push(setTimeout(function () {
@@ -562,10 +586,16 @@ export function buildFinalScene(state, mode, scenarioKey, SCENARIOS) {
   var same = (aH === bH);
 
   startGlowAnimation();
-  arrow(cfg.ax, cfg.type === 'mountain' ? 460 : 260, aH ? 'up' : 'down', false, aH ? '#e8663c' : '#3b7dd8');
-  arrow(cfg.bx, cfg.type === 'mountain' ? 390 : 260, bH ? 'up' : 'down', false, bH ? '#3498db' : '#3498db');
+  if (cfg.type === 'mountain') {
+    arrow(450, 460, aH ? 'up' : 'down', false, aH ? '#e8663c' : '#3b7dd8');
+    arrow(220, 370, bH ? 'up' : 'down', false, bH ? '#3498db' : '#3498db');
+    arrow(680, 370, bH ? 'up' : 'down', false, bH ? '#3498db' : '#3498db');
+  } else {
+    arrow(cfg.ax, 260, aH ? 'up' : 'down', false, aH ? '#e8663c' : '#3b7dd8');
+    arrow(cfg.bx, 260, bH ? 'up' : 'down', false, bH ? '#3498db' : '#3498db');
+  }
 
-  if (!same) {
+  if (!same && cfg.type !== 'mountain') {
     var cw = aH;
     if (cw) {
       arrow(450, cfg.upperY, 'right', false, '#3d7fd6');
@@ -577,9 +607,10 @@ export function buildFinalScene(state, mode, scenarioKey, SCENARIOS) {
   }
   buildLabels(state, mode, scenarioKey, SCENARIOS, false);
   drawIsobars(state, mode, scenarioKey, SCENARIOS, false);
+  
   if (same) {
-    addVerticalParticles(cfg.ax, cfg.type === 'mountain' ? 500 : cfg.surfY, cfg.upperY, aH, 6, state.intensity);
-    addVerticalParticles(cfg.bx, cfg.type === 'mountain' ? 430 : cfg.surfY, cfg.upperY, bH, 6, state.intensity);
+    addVerticalParticles(cfg.ax, cfg.surfY, cfg.upperY, aH, 6, state.intensity);
+    addVerticalParticles(cfg.bx, cfg.surfY, cfg.upperY, bH, 6, state.intensity);
   } else {
     addLoopParticles(aH, 12, state.intensity, mode, scenarioKey, SCENARIOS);
   }
@@ -600,9 +631,9 @@ export function getExplanationText(state, mode, scenarioKey) {
     } else if (scenarioKey === 'seaLandNight') {
       return '<strong>【海陆风·夜晚原理解析】</strong><br>夜晚陆地降温快，气温低、气压高（下沉气流）；海洋降温慢，气温高、气压低（上升气流）。近地面气流由气压高的<strong>陆地吹向海洋</strong>，形成“陆风”。';
     } else if (scenarioKey === 'mountainDay') {
-      return '<strong>【山谷风·白天谷风原理解析】</strong><br>白天山坡受热快，空气增温沿山坡上升，形成低压；谷底同高度空气增温较慢，形成高压。近地面风由<strong>谷底吹向山坡</strong>，称为“谷风”。';
+      return '<strong>【山谷风·白天谷风原理解析】</strong><br>白天山坡受热快，空气增温沿山坡上升，形成低压；谷底同高度空气增温较慢，形成高压。近地面风由<strong>谷底吹向山坡</strong>，高空由谷底上空向两侧分流，形成双侧对称的谷风环流。';
     } else if (scenarioKey === 'mountainNight') {
-      return '<strong>【山谷风·夜晚山风原理解析】</strong><br>夜晚山坡辐射冷却迅速，冷空气沿山坡下滑注入谷底，形成高压；谷底气温相对较高，形成低压。近地面风由<strong>山坡吹向谷底</strong>，称为“山风”。';
+      return '<strong>【山谷风·夜晚山风原理解析】</strong><br>夜晚山坡辐射冷却迅速，冷空气沿山坡下滑注入谷底，形成高压；谷底气温相对较高，形成低压。近地面风由<strong>山坡吹向谷底</strong>，形成双侧对称的山风环流。';
     } else if (scenarioKey === 'urbanIsland') {
       return '<strong>【城市热岛效应原理解析】</strong><br>城区由于热岛效应气温高、气流上升形成低压；郊区气温较低、气流下沉形成高压。近地面气流由<strong>郊区吹向城区</strong>。';
     }
