@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>热力环流实验室 - 白板与手机全适配版</title>
+<title>热力环流实验室 - 全适配与情境拓展版</title>
 <link rel="stylesheet" href="./src/style.css">
 </head>
 <body>
@@ -19,7 +19,14 @@
     <!-- 左侧控制面板（铺满一屏） -->
     <div id="sidebar">
 
-      <div class="card">
+      <!-- 模式切换卡片 -->
+      <div class="mode-switch-card">
+        <button id="modeBasicBtn" class="mode-tab active">🔬 基础热力环流</button>
+        <button id="modeScenarioBtn" class="mode-tab">🌍 迁移应用情境</button>
+      </div>
+
+      <!-- ① 基础实验条件与强度设置 -->
+      <div id="basicCtrlCard" class="card">
         <div class="ct">① 实验条件与强度设置</div>
         <table class="ctrl">
           <tr>
@@ -41,6 +48,21 @@
             </td>
           </tr>
         </table>
+      </div>
+
+      <!-- ① 迁移应用情境卡片 (默认隐藏) -->
+      <div id="scenarioCtrlCard" class="card" style="display:none;">
+        <div class="ct">① 选择地理应用情境</div>
+        <select id="scenarioSelect" class="form-select">
+          <option value="seaLandDay">🌊 海陆风：白天（吹海风）</option>
+          <option value="seaLandNight">🌙 海陆风：夜晚（吹陆风）</option>
+          <option value="mountainDay">⛰️ 山谷风：白天（吹谷风）</option>
+          <option value="mountainNight">🌃 山谷风：夜晚（吹山风）</option>
+          <option value="urbanIsland">🏙️ 城市热岛效应（城郊环流）</option>
+        </select>
+        <div id="scenarioDesc" class="scenario-desc">
+          白天太阳辐射下，陆地比海洋升温快，陆地气温高、海洋气温低。
+        </div>
       </div>
 
       <div class="card">

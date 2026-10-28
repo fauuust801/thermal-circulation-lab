@@ -44,6 +44,57 @@ html, body {
   flex-shrink: 0;
 }
 
+/* 模式切换选项卡 */
+.mode-switch-card {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.mode-tab {
+  flex: 1;
+  height: 44px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: bold;
+  border: 1px solid #b9c9d8;
+  background: #e6f0f8;
+  color: #1e4e79;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mode-tab.active {
+  background: #1e4e79;
+  color: #ffffff;
+  border-color: #163a5a;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 情境下拉选择框 */
+.form-select {
+  width: 100%;
+  height: 42px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: bold;
+  padding: 0 10px;
+  border: 1px solid #b9c9d8;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1e4e79;
+  cursor: pointer;
+}
+.scenario-desc {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4a5b6c;
+  margin-top: 8px;
+  background: #f0f5fa;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border-left: 3px solid #1e4e79;
+}
+
 /* 铺满主页的右侧舞台 */
 #stage {
   flex: 1;
@@ -195,7 +246,7 @@ table.ctrl td.lbl { width: 90px; font-size: 15px; color: #33475b; font-weight: b
   font-size: 14px; line-height: 1.8; color: #2c3e50;
 }
 
-/* 手机端竖屏媒体查询适配 (Mobile Responsive) */
+/* 手机端竖屏适配 */
 @media (max-width: 900px) {
   html, body { overflow: auto; height: auto; }
   #app { height: auto; position: relative; }
