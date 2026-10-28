@@ -1,8 +1,9 @@
 // src/simulator.js
 const NS = 'http://www.w3.org/2000/svg';
 
-let svg, terrainGroup, tempTextA, tempTextB;
-let glowA, glowB;
+let svg, terrainGroup, tempTextA, tempTextB, tempTextBR;
+let glowA, glowB, glowBR;
+let glowBaseA = 45, glowBaseB = 45, glowBaseBR = 45;
 let flowG, labelG, captionG, isobarG;
 let glowFactor = 1.0, glowGrowing = true;
 
@@ -146,6 +147,8 @@ function buildBase() {
 export function renderTerrain(mode, scenarioKey, SCENARIOS, state, sim) {
   if (!terrainGroup) return;
   clear(terrainGroup);
+  glowBaseA = 45; glowBaseB = 45; glowBaseBR = 45;
+  glowBR = null; tempTextBR = null;
   var cfg = getTerrainConfig(mode, scenarioKey, SCENARIOS);
   var aH = (state.A === 'heat');
   var bH = (state.B === 'heat');
@@ -180,20 +183,23 @@ export function renderTerrain(mode, scenarioKey, SCENARIOS, state, sim) {
 
     el('line', { x1: 40, y1: cfg.upperY, x2: 860, y2: cfg.upperY, stroke: '#9fb6c9', 'stroke-width': 1.5, 'stroke-dasharray': '6 4' }, terrainGroup);
 
-    glowA = el('circle', { cx: 450, cy: 490, r: 40, fill: aH ? '#e74c3c' : '#3498db', opacity: glowOpacity }, terrainGroup);
-    glowB = el('circle', { cx: 220, cy: 420, r: 35, fill: bH ? '#e74c3c' : '#3498db', opacity: glowOpacity }, terrainGroup);
-    el('circle', { cx: 680, cy: 420, r: 35, fill: bH ? '#e74c3c' : '#3498db', opacity: glowOpacity }, terrainGroup);
+    // 热力区域贴合真实地形：谷底(A)在谷底地表(530)上方，左右山坡(B)在坡面(≈468)上方
+    glowBaseA = 38; glowBaseB = 30; glowBaseBR = 30;
+    glowA = el('circle', { cx: 450, cy: 498, r: glowBaseA, fill: aH ? '#e74c3c' : '#3498db', opacity: glowOpacity }, terrainGroup);
+    glowB = el('circle', { cx: 225, cy: 440, r: glowBaseB, fill: bH ? '#e74c3c' : '#3498db', opacity: glowOpacity }, terrainGroup);
+    glowBR = el('circle', { cx: 675, cy: 440, r: glowBaseBR, fill: bH ? '#e74c3c' : '#3498db', opacity: glowOpacity }, terrainGroup);
 
     var scMountain = SCENARIOS[scenarioKey];
-    var ta = el('text', { x: 450, y: 565, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold', fill: '#5b4a33' }, terrainGroup);
+    var ta = el('text', { x: 450, y: 560, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold', fill: '#5b4a33' }, terrainGroup);
     ta.textContent = scMountain.zoneALabel;
-    var tb = el('text', { x: 220, y: 385, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 'bold', fill: '#5b4a33' }, terrainGroup);
+    var tb = el('text', { x: 225, y: 385, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 'bold', fill: '#5b4a33' }, terrainGroup);
     tb.textContent = scMountain.zoneBLabel + ' (左)';
-    var tc = el('text', { x: 680, y: 385, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 'bold', fill: '#5b4a33' }, terrainGroup);
+    var tc = el('text', { x: 675, y: 385, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 'bold', fill: '#5b4a33' }, terrainGroup);
     tc.textContent = scMountain.zoneBLabel + ' (右)';
 
-    tempTextA = el('text', { x: 450, y: 590, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold' }, terrainGroup);
-    tempTextB = el('text', { x: 220, y: 355, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold' }, terrainGroup);
+    tempTextA = el('text', { x: 450, y: 588, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold' }, terrainGroup);
+    tempTextB = el('text', { x: 225, y: 358, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold' }, terrainGroup);
+    tempTextBR = el('text', { x: 675, y: 358, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold' }, terrainGroup);
 
   } else {
     el('rect', { x: 0, y: 460, width: 900, height: 140, fill: '#d5dbdb' }, terrainGroup);
@@ -233,12 +239,15 @@ export function updateVisuals(state) {
   var aH = (state.A === 'heat');
   var bH = (state.B === 'heat');
 
-  if (tempTextA && tempTextB) {
-    tempTextA.textContent = aH ? '受热 (暖)' : '冷却 (冷)';
-    tempTextA.setAttribute('fill', aH ? '#c0392b' : '#1f5fa8');
-    tempTextB.textContent = bH ? '受热 (暖)' : '冷却 (冷)';
-    tempTextB.setAttribute('fill', bH ? '#c0392b' : '#1f5fa8');
+  function setTemp(node, hot) {
+    if (!node) return;
+    node.textContent = hot ? '受热 (暖)' : '冷却 (冷)';
+    node.setAttribute('fill', hot ? '#c0392b' : '#1f5fa8');
   }
+
+  setTemp(tempTextA, aH);
+  setTemp(tempTextB, bH);
+  setTemp(tempTextBR, bH);
 }
 
 function drawIsobars(state, mode, scenarioKey, SCENARIOS, fade) {
@@ -256,10 +265,10 @@ function drawIsobars(state, mode, scenarioKey, SCENARIOS, fade) {
 
   if (cfg.type === 'mountain') {
     if (aH) {
-      pathDataSurf = 'M 100 380 Q 450 330, 800 380';
+      pathDataSurf = 'M 100 380 Q 450 415, 800 380';
       pathDataUpper = 'M 100 130 Q 450 95, 800 130';
     } else {
-      pathDataSurf = 'M 100 380 Q 450 420, 800 380';
+      pathDataSurf = 'M 100 380 Q 450 345, 800 380';
       pathDataUpper = 'M 100 130 Q 450 165, 800 130';
     }
   } else {
@@ -287,6 +296,7 @@ function drawIsobars(state, mode, scenarioKey, SCENARIOS, fade) {
 function startGlowAnimation() {
   if (glowA) glowA.setAttribute('opacity', '0.25');
   if (glowB) glowB.setAttribute('opacity', '0.25');
+  if (glowBR) glowBR.setAttribute('opacity', '0.25');
   if (glowTimer) clearInterval(glowTimer);
   glowTimer = setInterval(function() {
     if (glowGrowing) {
@@ -296,10 +306,9 @@ function startGlowAnimation() {
       glowFactor -= 0.02;
       if (glowFactor <= 0.85) glowGrowing = true;
     }
-    if (glowA && glowB) {
-      glowA.setAttribute('r', (45 * glowFactor));
-      glowB.setAttribute('r', (45 * (2 - glowFactor)));
-    }
+    if (glowA) glowA.setAttribute('r', (glowBaseA * glowFactor));
+    if (glowB) glowB.setAttribute('r', (glowBaseB * (2 - glowFactor)));
+    if (glowBR) glowBR.setAttribute('r', (glowBaseBR * (2 - glowFactor)));
   }, 120);
   intervals.push(glowTimer);
 }
@@ -365,6 +374,19 @@ function addVerticalParticles(x, y1, y2, up, count, intensity) {
   ensureAnim();
 }
 
+function addSlopeParticles(x1, y1, x2, y2, up, count, intensity) {
+  var pts = up ? [[x1, y1], [x2, y2]] : [[x2, y2], [x1, y1]];
+  var path = buildPath(pts, false);
+  var i, c;
+  var spd = getBaseSpeed(intensity);
+  var zType = up ? 'rising' : 'sinking';
+  for (i = 0; i < count; i++) {
+    c = el('circle', { r: up ? 6 : 5, fill: up ? '#e8663c' : '#3b7dd8', opacity: '0.95' }, flowG);
+    particles.push({ el: c, path: path, phase: path.total * i / count, baseSpeed: spd, zoneType: zType });
+  }
+  ensureAnim();
+}
+
 function addHorizParticles(x1, x2, y, count, intensity) {
   var pts = [[x1, y], [x2, y]];
   var path = buildPath(pts, false);
@@ -382,14 +404,16 @@ function addLoopParticles(cw, count, intensity, mode, scenarioKey, SCENARIOS) {
   var pathsList = [];
 
   if (cfg.type === 'mountain') {
+    // 双侧对称环流：沿山坡的斜向段 + 谷底垂直段 + 高空水平段
     var ptsLeft = [
-      [450, 480], [450, 130], [220, 130], [220, 420], [335, 460], [450, 480]
+      [450, 130], [450, 505], [250, 478], [70, 435], [225, 130]
     ];
     var ptsRight = [
-      [450, 480], [450, 130], [680, 130], [680, 420], [565, 460], [450, 480]
+      [450, 130], [450, 505], [650, 478], [830, 435], [675, 130]
     ];
 
-    if (!cw) {
+    // cw = aH；白天(谷风,aH=false)正向沿坡上升，夜晚(山风,aH=true)反向沿坡下滑
+    if (cw) {
       ptsLeft.reverse();
       ptsRight.reverse();
     }
@@ -471,8 +495,8 @@ function buildLabels(state, mode, scenarioKey, SCENARIOS, fade) {
   if (cfg.type === 'mountain') {
     addPressureLabel(450, 440, aH ? '低压' : '高压', !aH, fade);
     addPressureLabel(450, 95, aH ? '高压' : '低压', aH, fade);
-    addPressureLabel(220, 465, bH ? '低压' : '高压', !bH, fade);
-    addPressureLabel(680, 465, bH ? '低压' : '高压', !bH, fade);
+    addPressureLabel(225, 490, bH ? '低压' : '高压', !bH, fade);
+    addPressureLabel(675, 490, bH ? '低压' : '高压', !bH, fade);
   } else {
     addPressureLabel(cfg.ax, 420, aH ? '低压' : '高压', !aH, fade);
     addPressureLabel(cfg.ax, cfg.upperY - 40, aH ? '高压' : '低压', aH, fade);
@@ -482,17 +506,25 @@ function buildLabels(state, mode, scenarioKey, SCENARIOS, fade) {
 }
 
 function arrow(x, y, dir, fade, color) {
-  var pts, s;
+  var pts;
   if (dir === 'up') {
     pts = [[x, y - 14], [x - 12, y + 10], [x + 12, y + 10]];
   } else if (dir === 'down') {
     pts = [[x, y + 14], [x - 12, y - 10], [x + 12, y - 10]];
   } else if (dir === 'left') {
     pts = [[x - 14, y], [x + 10, y - 12], [x + 10, y + 12]];
+  } else if (dir === 'upleft') {
+    pts = [[x - 11, y - 11], [x + 8, y + 6], [x - 6, y - 8]];
+  } else if (dir === 'upright') {
+    pts = [[x + 11, y - 11], [x - 8, y + 6], [x + 6, y - 8]];
+  } else if (dir === 'downleft') {
+    pts = [[x - 11, y + 11], [x + 6, y + 8], [x - 8, y - 6]];
+  } else if (dir === 'downright') {
+    pts = [[x + 11, y + 11], [x - 6, y + 8], [x + 8, y - 6]];
   } else {
     pts = [[x + 14, y], [x - 10, y - 12], [x - 10, y + 12]];
   }
-  s = pts[0][0] + ',' + pts[0][1] + ' ' + pts[1][0] + ',' + pts[1][1] + ' ' + pts[2][0] + ',' + pts[2][1];
+  var s = pts[0][0] + ',' + pts[0][1] + ' ' + pts[1][0] + ',' + pts[1][1] + ' ' + pts[2][0] + ',' + pts[2][1];
   var poly = el('polygon', { points: s, fill: color || '#3d7fd6', opacity: fade ? '0' : '0.9' }, flowG);
   if (fade) { fadeTo(poly, 0.9, 250); }
   return poly;
@@ -522,10 +554,13 @@ export function scheduleStages(state, mode, scenarioKey, SCENARIOS, onComplete) 
   timeouts.push(setTimeout(function () {
     showCaption('② 空气垂直运动（受热区膨胀上升冲力强，冷却区收缩下沉平缓）');
     if (cfg.type === 'mountain') {
-      arrow(450, 460, aH ? 'up' : 'down', true, aH ? '#e8663c' : '#3b7dd8');
-      addVerticalParticles(450, 510, 160, aH, 6, state.intensity);
-      arrow(220, 370, bH ? 'up' : 'down', true, bH ? '#e8663c' : '#3b7dd8');
-      arrow(680, 370, bH ? 'up' : 'down', true, bH ? '#e8663c' : '#3b7dd8');
+      arrow(450, 350, aH ? 'up' : 'down', true, aH ? '#e8663c' : '#3b7dd8');
+      addVerticalParticles(450, 505, 130, aH, 6, state.intensity);
+      // 左右山坡：沿坡面上升(谷风)/下滑(山风)
+      arrow(160, 452, bH ? 'upleft' : 'downright', true, bH ? '#e8663c' : '#3b7dd8');
+      addSlopeParticles(250, 478, 70, 435, bH, 5, state.intensity);
+      arrow(740, 452, bH ? 'upright' : 'downleft', true, bH ? '#e8663c' : '#3b7dd8');
+      addSlopeParticles(650, 478, 830, 435, bH, 5, state.intensity);
     } else {
       arrow(cfg.ax, 260, aH ? 'up' : 'down', true, aH ? '#e8663c' : '#3b7dd8');
       addVerticalParticles(cfg.ax, cfg.surfY, cfg.upperY, aH, 6, state.intensity);
@@ -547,6 +582,29 @@ export function scheduleStages(state, mode, scenarioKey, SCENARIOS, onComplete) 
   timeouts.push(setTimeout(function () {
     if (same) {
       showCaption('④ 无水平气压梯度，空气不发生水平运动');
+    } else if (cfg.type === 'mountain') {
+      showCaption('④ 水平气流（谷底与两侧山坡间形成水平气压梯度，双侧对称）');
+      if (aH) {
+        // 山风(夜)：近地面两侧山坡→谷底，高空谷底→两侧分流
+        arrow(350, 490, 'right', true, '#3d7fd6');
+        addHorizParticles(225, 450, 490, 4, state.intensity);
+        arrow(550, 490, 'left', true, '#3d7fd6');
+        addHorizParticles(675, 450, 490, 4, state.intensity);
+        arrow(350, cfg.upperY, 'left', true, '#3d7fd6');
+        addHorizParticles(450, 225, cfg.upperY, 4, state.intensity);
+        arrow(550, cfg.upperY, 'right', true, '#3d7fd6');
+        addHorizParticles(450, 675, cfg.upperY, 4, state.intensity);
+      } else {
+        // 谷风(昼)：近地面谷底→两侧山坡，高空两侧山坡→谷底汇合
+        arrow(350, 490, 'left', true, '#3d7fd6');
+        addHorizParticles(450, 225, 490, 4, state.intensity);
+        arrow(550, 490, 'right', true, '#3d7fd6');
+        addHorizParticles(450, 675, 490, 4, state.intensity);
+        arrow(350, cfg.upperY, 'right', true, '#3d7fd6');
+        addHorizParticles(225, 450, cfg.upperY, 4, state.intensity);
+        arrow(550, cfg.upperY, 'left', true, '#3d7fd6');
+        addHorizParticles(675, 450, cfg.upperY, 4, state.intensity);
+      }
     } else {
       showCaption('④ 水平气流（高压流向低压，气流受热/冷影响速率不同）');
       var cw = aH;
@@ -587,30 +645,49 @@ export function buildFinalScene(state, mode, scenarioKey, SCENARIOS) {
 
   startGlowAnimation();
   if (cfg.type === 'mountain') {
-    arrow(450, 460, aH ? 'up' : 'down', false, aH ? '#e8663c' : '#3b7dd8');
-    arrow(220, 370, bH ? 'up' : 'down', false, bH ? '#3498db' : '#3498db');
-    arrow(680, 370, bH ? 'up' : 'down', false, bH ? '#3498db' : '#3498db');
+    arrow(450, 350, aH ? 'up' : 'down', false, aH ? '#e8663c' : '#3b7dd8');
+    arrow(160, 452, bH ? 'upleft' : 'downright', false, bH ? '#e8663c' : '#3b7dd8');
+    arrow(740, 452, bH ? 'upright' : 'downleft', false, bH ? '#e8663c' : '#3b7dd8');
+    if (!same) {
+      if (aH) {
+        // 山风(夜)：近地面两侧山坡→谷底，高空谷底→两侧分流
+        arrow(350, 490, 'right', false, '#3d7fd6');
+        arrow(550, 490, 'left', false, '#3d7fd6');
+        arrow(350, cfg.upperY, 'left', false, '#3d7fd6');
+        arrow(550, cfg.upperY, 'right', false, '#3d7fd6');
+      } else {
+        // 谷风(昼)：近地面谷底→两侧山坡，高空两侧山坡→谷底汇合
+        arrow(350, 490, 'left', false, '#3d7fd6');
+        arrow(550, 490, 'right', false, '#3d7fd6');
+        arrow(350, cfg.upperY, 'right', false, '#3d7fd6');
+        arrow(550, cfg.upperY, 'left', false, '#3d7fd6');
+      }
+    }
   } else {
     arrow(cfg.ax, 260, aH ? 'up' : 'down', false, aH ? '#e8663c' : '#3b7dd8');
     arrow(cfg.bx, 260, bH ? 'up' : 'down', false, bH ? '#3498db' : '#3498db');
-  }
-
-  if (!same && cfg.type !== 'mountain') {
-    var cw = aH;
-    if (cw) {
-      arrow(450, cfg.upperY, 'right', false, '#3d7fd6');
-      arrow(450, cfg.surfY - 20, 'left', false, '#3d7fd6');
-    } else {
-      arrow(450, cfg.upperY, 'left', false, '#3d7fd6');
-      arrow(450, cfg.surfY - 20, 'right', false, '#3d7fd6');
+    if (!same) {
+      if (aH) {
+        arrow(450, cfg.upperY, 'right', false, '#3d7fd6');
+        arrow(450, cfg.surfY - 20, 'left', false, '#3d7fd6');
+      } else {
+        arrow(450, cfg.upperY, 'left', false, '#3d7fd6');
+        arrow(450, cfg.surfY - 20, 'right', false, '#3d7fd6');
+      }
     }
   }
   buildLabels(state, mode, scenarioKey, SCENARIOS, false);
   drawIsobars(state, mode, scenarioKey, SCENARIOS, false);
   
   if (same) {
-    addVerticalParticles(cfg.ax, cfg.surfY, cfg.upperY, aH, 6, state.intensity);
-    addVerticalParticles(cfg.bx, cfg.surfY, cfg.upperY, bH, 6, state.intensity);
+    if (cfg.type === 'mountain') {
+      addVerticalParticles(450, 505, 130, aH, 6, state.intensity);
+      addSlopeParticles(250, 478, 70, 435, bH, 5, state.intensity);
+      addSlopeParticles(650, 478, 830, 435, bH, 5, state.intensity);
+    } else {
+      addVerticalParticles(cfg.ax, cfg.surfY, cfg.upperY, aH, 6, state.intensity);
+      addVerticalParticles(cfg.bx, cfg.surfY, cfg.upperY, bH, 6, state.intensity);
+    }
   } else {
     addLoopParticles(aH, 12, state.intensity, mode, scenarioKey, SCENARIOS);
   }
