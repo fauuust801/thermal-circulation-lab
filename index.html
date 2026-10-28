@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>热力环流实验室 - 互动教学升级版</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+    background: #eef3f8;
+    color: #22303f;
+    overflow: hidden;
+  }
+  #app { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+
+  #topbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 46px;
+    background: #1e4e79; color: #fff; line-height: 46px; padding: 0 18px;
+  }
+  #topbar .title { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
+  #topbar .sub { font-size: 13px; color: #b9d4ea; margin-left: 16px; }
+
+  #main { position: absolute; top: 46px; left: 0; right: 0; bottom: 0; }
+
+  #sidebar {
+    position: absolute; top: 0; left: 0; bottom: 0; width: 34%;
+    padding: 8px 10px 10px 12px;
+    overflow-y: auto; overflow-x: hidden;
+  }
+  #stage {
+    position: absolute; top: 0; left: 34%; right: 0; bottom: 0;
+    padding: 8px;
+  }
+  #svg { width: 100%; height: 100%; display: block; }
+
+  .card {
+    background: #fff;
+    border: 1px solid #d3dee8;
+    border-radius: 8px;
+    padding: 9px 12px 10px;
+    margin-bottom: 9px;
+  }
+  .ct {
+    font-size: 15px; font-weight: bold; color: #1e4e79;
+    margin-bottom: 7px;
+    border-bottom: 2px solid #ebf5fb;
+    padding-bottom: 4px;
+  }
+
+  table.ctrl { border-collapse: collapse; width: 100%; }
+  table.ctrl td { padding: 3px 0; vertical-align: middle; }
+  table.ctrl td.lbl { width: 84px; font-size: 14px; color: #33475b; font-weight: bold; }
+
+  .seg {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 0 10px;
+    min-width: 70px; height: 38px;
+    border: 1px solid #b9c9d8;
+    background: #f7fafc;
+    color: #33475b;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-right: 6px;
+  }
+  .seg.active-heat { background: #e8663c; border-color: #c8502a; color: #fff; font-weight: bold; }
+  .seg.active-cool { background: #3b7dd8; border-color: #2a60b0; color: #fff; font-weight: bold; }
+  .seg.active-intensity { background: #27ae60; border-color: #1e8449; color: #fff; font-weight: bold; }
+  .seg:disabled { opacity: 0.45; cursor: default; }
+
+  .quiz-item {
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+  .quiz-item:last-child { border-bottom: none; margin-bottom: 0; }
+  .qt { font-size: 13px; color: #33475b; line-height: 1.4; margin-bottom: 5px; font-weight: bold; }
+  .opts { font-size: 0; display: flex; gap: 4px; }
+  .opt {
+    font-family: inherit;
+    font-size: 13px;
+    height: 36px;
+    flex: 1;
+    border: 1px solid #b9c9d8;
+    background: #f7fafc;
+    color: #33475b;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 0 2px;
+    white-space: nowrap;
+  }
+  .opt.active {
+    background: #1e4e79; border-color: #163a5a; color: #fff; font-weight: bold;
+  }
+  .opt:disabled { opacity: 0.6; cursor: default; }
+
+  #runBtn {
+    display: block; width: 100%;
+    font-family: inherit; font-size: 17px; font-weight: bold;
+    height: 50px;
+    border: none; border-radius: 8px;
+    background: #2e8b57; color: #fff;
+    cursor: pointer;
+    margin-bottom: 6px;
+  }
+  #runBtn:disabled { background: #b9c6cf; cursor: default; }
+
+  #runHint {
+    font-size: 13px; text-align: center; color: #8a99a8;
+    margin: 0 0 8px; line-height: 1.4;
+  }
+  #runHint.ok { color: #2e8b57; font-weight: bold; }
+
+  .btn-row { display: flex; gap: 6px; margin-bottom: 6px; }
+  #skipBtn, #resetBtn {
+    flex: 1;
+    font-family: inherit; font-size: 14px;
+    height: 40px;
+    border-radius: 6px; cursor: pointer;
+  }
+  #skipBtn { border: 1px solid #e0a800; background: #fff8e1; color: #8a6d00; }
+  #resetBtn { border: 1px solid #b9c9d8; background: #fff; color: #33475b; }
+
+  #result {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 0; overflow: hidden;
+    background: #fff;
+    border-top: 2px solid #1e4e79;
+    z-index: 5;
+    transition: height 0.2s;
+  }
+  #resBar {
+    position: relative; height: 36px;
+    background: #f2f7fb;
+    border-bottom: 1px solid #dbe6ef;
+  }
+  #resTitle {
+    position: absolute; left: 16px; top: 0; line-height: 36px;
+    font-size: 14px; font-weight: bold; color: #1e4e79;
+  }
+  #toggleRes {
+    position: absolute; right: 16px; top: 4px;
+    font-family: inherit; font-size: 12px;
+    height: 28px; padding: 0 12px;
+    border: 1px solid #b9c9d8; background: #fff;
+    border-radius: 5px; cursor: pointer; color: #33475b;
+  }
+  #resBody {
+    position: absolute; left: 0; right: 0; top: 36px; bottom: 0;
+    padding: 8px 18px 12px;
+    overflow-y: auto;
+  }
+  .resrow { font-size: 13px; line-height: 1.7; white-space: nowrap; }
+  .rq { display: inline-block; width: 32%; color: #33475b; }
+  .ry { display: inline-block; width: 24%; color: #4a5b6c; }
+  .rm { display: inline-block; width: 16%; font-weight: bold; }
+  .rr { display: inline-block; width: 24%; color: #4a5b6c; }
+  .ok { color: #1e8449; }
+  .no { color: #c0392b; }
+  .resexp {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #f6fafd;
+    border-left: 4px solid #1e4e79;
+    font-size: 13px; line-height: 1.7; color: #2c3e50;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="topbar">
+    <span class="title">热力环流实验室</span>
+    <span class="sub">地面冷热不均 ➔ 空气垂直运动 ➔ 气压差异 ➔ 水平气流 ➔ 形成热力环流</span>
+  </div>
+
+  <div id="main">
+    <div id="sidebar">
+
+      <div class="card">
+        <div class="ct">① 实验条件与强度设置</div>
+        <table class="ctrl">
+          <tr>
+            <td class="lbl">A 区地面</td>
+            <td><button id="btnAh" class="seg">受热</button></td>
+            <td><button id="btnAc" class="seg">冷却</button></td>
+          </tr>
+          <tr>
+            <td class="lbl">B 区地面</td>
+            <td><button id="btnBh" class="seg">受热</button></td>
+            <td><button id="btnBc" class="seg">冷却</button></td>
+          </tr>
+          <tr>
+            <td class="lbl">冷热强度</td>
+            <td colspan="2">
+              <button id="btnIntWeak" class="seg" style="min-width:55px;">弱</button>
+              <button id="btnIntMed" class="seg" style="min-width:55px;">中</button>
+              <button id="btnIntStrong" class="seg" style="min-width:55px;">强</button>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="ct">② 先预测，再运行模拟</div>
+        <div id="quizContainer"></div>
+      </div>
+
+      <button id="runBtn" disabled>③ 运行模型验证</button>
+      <div id="runHint">请先完成上方 3 道预测题</div>
+      
+      <div class="btn-row">
+        <button id="skipBtn" style="display:none;">跳过动画</button>
+        <button id="resetBtn">重置全部</button>
+      </div>
+    </div>
+
+    <div id="stage">
+      <svg id="svg" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+  </div>
+
+  <div id="result">
+    <div id="resBar">
+      <span id="resTitle">预测与结果对照分析</span>
+      <button id="toggleRes">收起</button>
+    </div>
+    <div id="resBody"></div>
+  </div>
+
+</div>
+
+<script type="text/javascript">
+(function () {
+  'use strict';
+
+  var NS = 'http://www.w3.org/2000/svg';
+
+  var QUESTIONS = [
+    {
+      id: 0,
+      text: '1. 近地面：A 处气压比 B 处',
+      opts: [
+        { v: 'high', t: '更高' },
+        { v: 'low', t: '更低' },
+        { v: 'same', t: '相同' }
+      ]
+    },
+    {
+      id: 1,
+      text: '2. 高空：A 处上空气压比 B 处上空',
+      opts: [
+        { v: 'high', t: '更高' },
+        { v: 'low', t: '更低' },
+        { v: 'same', t: '相同' }
+      ]
+    },
+    {
+      id: 2,
+      text: '3. 近地面水平气流的方向',
+      opts: [
+        { v: 'ab', t: 'A → B' },
+        { v: 'ba', t: 'B → A' },
+        { v: 'none', t: '无水平气流' }
+      ]
+    }
+  ];
+
+  var state = { A: 'heat', B: 'cool', intensity: 'medium' };
+  var quizAnswers = [null, null, null];
+  var sim = { playing: false, done: false, resultOpen: false };
+
+  var timeouts = [];
+  var intervals = [];
+  var animTimer = null;
+  var glowTimer = null;
+  var particles = [];
+
+  var svg, groundA, groundB, tempTextA, tempTextB;
+  var glowA, glowB;
+  var flowG, labelG, captionG, isobarG;
+  var mainEl, resultEl;
+  var glowFactor = 1.0, glowGrowing = true;
+
+  function $(id) { return document.getElementById(id); }
+
+  function el(tag, attrs, parent) {
+    var e = document.createElementNS(NS, tag);
+    var k;
+    if (attrs) {
+      for (k in attrs) {
+        if (Object.prototype.hasOwnProperty.call(attrs, k)) {
+          e.setAttribute(k, attrs[k]);
+        }
+      }
+    }
+    if (parent) { parent.appendChild(e); }
+    return e;
+  }
+
+  function clear(node) {
+    while (node.firstChild) { node.removeChild(node.firstChild); }
+  }
+
+  function on(node, ev, fn) {
+    if (!node) { return; }
+    if (node.addEventListener) { node.addEventListener(ev, fn, false); }
+    else if (node.attachEvent) { node.attachEvent('on' + ev, fn); }
+  }
+
+  function clearTimers() {
+    var i;
+    for (i = 0; i < timeouts.length; i++) { clearTimeout(timeouts[i]); }
+    for (i = 0; i < intervals.length; i++) { clearInterval(intervals[i]); }
+    timeouts = [];
+    intervals = [];
+  }
+
+  function fadeTo(node, target, dur, cb) {
+    var start = parseFloat(node.getAttribute('opacity') || '0');
+    if (isNaN(start)) { start = 0; }
+    var steps = Math.max(1, Math.round(dur / 40));
+    var i = 0;
+    var iv = setInterval(function () {
+      if (!node.parentNode) { clearInterval(iv); return; }
+      i++;
+      var v = start + (target - start) * i / steps;
+      if (i >= steps) {
+        v = target;
+        clearInterval(iv);
+        if (cb) { cb(); }
+      }
+      node.setAttribute('opacity', v.toFixed(3));
+    }, 40);
+    intervals.push(iv);
+    return iv;
+  }
+
+  function roundedRectPoints(x1, y1, x2, y2, r) {
+    var pts = [];
+    var steps = 8;
+    function arc(cx, cy, a0, a1) {
+      var k, t;
+      for (k = 0; k <= steps; k++) {
+        t = a0 + (a1 - a0) * k / steps;
+        pts.push([cx + r * Math.cos(t), cy + r * Math.sin(t)]);
+      }
+    }
+    pts.push([x1, y2 - r]);
+    pts.push([x1, y1 + r]);
+    arc(x1 + r, y1 + r, Math.PI, Math.PI * 1.5);
+    pts.push([x2 - r, y1]);
+    arc(x2 - r, y1 + r, Math.PI * 1.5, Math.PI * 2);
+    pts.push([x2, y2 - r]);
+    arc(x2 - r, y2 - r, 0, Math.PI * 0.5);
+    pts.push([x1 + r, y2]);
+    arc(x1 + r, y2 - r, Math.PI * 0.5, Math.PI);
+    return pts;
+  }
+
+  function buildPath(points, closed) {
+    var segs = [];
+    var total = 0;
+    var n = points.length;
+    var count = closed ? n : n - 1;
+    var i, p, q, dx, dy, len;
+
+    for (i = 0; i < count; i++) {
+      p = points[i];
+      q = points[(i + 1) % n];
+      dx = q[0] - p[0];
+      dy = q[1] - p[1];
+      len = Math.sqrt(dx * dx + dy * dy);
+      if (len < 0.0001) { continue; }
+      segs.push({ x: p[0], y: p[1], dx: dx / len, dy: dy / len, len: len, start: total });
+      total += len;
+    }
+    return { segs: segs, total: total };
+  }
+
+  function pointAt(p, d) {
+    if (!p || p.total <= 0 || p.segs.length === 0) { return [0, 0]; }
+    var x = d % p.total;
+    if (x < 0) { x += p.total; }
+    var i, s, t;
+    for (i = 0; i < p.segs.length; i++) {
+      s = p.segs[i];
+      if (x < s.start + s.len) {
+        t = x - s.start;
+        return [s.x + s.dx * t, s.y + s.dy * t];
+      }
+    }
+    s = p.segs[p.segs.length - 1];
+    return [s.x + s.dx * s.len, s.y + s.dy * s.len];
+  }
+
+  function buildBase() {
+    clear(svg);
+
+    el('rect', { x: 0, y: 0, width: 900, height: 460, fill: '#f4f9fd' }, svg);
+    el('rect', { x: 0, y: 460, width: 900, height: 140, fill: '#d5dbdb' }, svg);
+    el('line', { x1: 0, y1: 460, x2: 900, y2: 460, stroke: '#a8987c', 'stroke-width': 2 }, svg);
+
+    glowA = el('circle', { cx: 240, cy: 460, r: 45, fill: '#e74c3c', opacity: '0.25' }, svg);
+    glowB = el('circle', { cx: 660, cy: 460, r: 45, fill: '#3498db', opacity: '0.25' }, svg);
+
+    groundA = el('rect', { x: 80, y: 460, width: 320, height: 140, 'stroke-width': 2 }, svg);
+    groundB = el('rect', { x: 500, y: 460, width: 320, height: 140, 'stroke-width': 2 }, svg);
+
+    var t;
+    t = el('text', { x: 240, y: 500, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 'bold', fill: '#5b4a33' }, svg);
+    t.textContent = 'A 区地面';
+    t = el('text', { x: 660, y: 500, 'text-anchor': 'middle', 'font-size': 18, 'font-weight': 'bold', fill: '#5b4a33' }, svg);
+    t.textContent = 'B 区地面';
+
+    tempTextA = el('text', { x: 240, y: 545, 'text-anchor': 'middle', 'font-size': 24, 'font-weight': 'bold' }, svg);
+    tempTextB = el('text', { x: 660, y: 545, 'text-anchor': 'middle', 'font-size': 24, 'font-weight': 'bold' }, svg);
+
+    // 基准水平面虚线
+    el('line', { x1: 40, y1: 140, x2: 860, y2: 140, stroke: '#9fb6c9', 'stroke-width': 1.5, 'stroke-dasharray': '6 4' }, svg);
+    el('line', { x1: 40, y1: 380, x2: 860, y2: 380, stroke: '#9fb6c9', 'stroke-width': 1.5, 'stroke-dasharray': '6 4' }, svg);
+
+    t = el('text', { x: 50, y: 130, 'font-size': 13, fill: '#7d95a9' }, svg);
+    t.textContent = '高空基准面';
+    t = el('text', { x: 50, y: 370, 'font-size': 13, fill: '#7d95a9' }, svg);
+    t.textContent = '近地面基准面';
+
+    isobarG = el('g', {}, svg);
+    flowG = el('g', {}, svg);
+    labelG = el('g', {}, svg);
+    captionG = el('g', {}, svg);
+  }
+
+  /* ============ 动态绘制等压面（等压线弯曲） ============ */
+  function drawIsobars(fade) {
+    clear(isobarG);
+    var aH = (state.A === 'heat');
+    var bH = (state.B === 'heat');
+    if (aH === bH) return; // 均匀受热时等压面水平
+
+    var g = el('g', {}, isobarG);
+    if (fade) g.setAttribute('opacity', '0');
+
+    // 近地面等压面：受热区(低压)向下凹陷，冷却区(高压)向上凸起
+    // 高空等压面：受热区(高压)向上凸起，冷却区(低压)向下凹陷
+    var pathDataSurf = '';
+    var pathDataUpper = '';
+
+    if (aH) {
+      // A受热 B冷却：近地面A凹陷(向下变大y)，B凸起(向上变小y)
+      pathDataSurf = 'M 100 380 Q 240 410, 450 380 T 800 380';
+      // 高空A凸起(向上变小y)，B凹陷(向下变大y)
+      pathDataUpper = 'M 100 140 Q 240 110, 450 140 T 800 140';
+    } else {
+      // A冷却 B受热：近地面A凸起，B凹陷
+      pathDataSurf = 'M 100 380 Q 240 350, 450 380 T 800 380';
+      // 高空A凹陷，B凸起
+      pathDataUpper = 'M 100 140 Q 240 170, 450 140 T 800 140';
+    }
+
+    var lineSurf = el('path', {
+      d: pathDataSurf,
+      stroke: '#e67e22',
+      'stroke-width': '2.5',
+      'stroke-dasharray': '5 5',
+      fill: 'none'
+    }, g);
+
+    var lineUpper = el('path', {
+      d: pathDataUpper,
+      stroke: '#3498db',
+      'stroke-width': '2.5',
+      'stroke-dasharray': '5 5',
+      fill: 'none'
+    }, g);
+
+    // 添加等压面文字标签
+    var tSurf = el('text', { x: 730, y: aH ? 365 : 395, 'font-size': '12', fill: '#e67e22', 'font-weight': 'bold' }, g);
+    tSurf.textContent = '近地面等压面弯曲';
+
+    var tUpper = el('text', { x: 730, y: aH ? 125 : 155, 'font-size': '12', fill: '#3498db', 'font-weight': 'bold' }, g);
+    tUpper.textContent = '高空等压面弯曲';
+
+    if (fade) {
+      fadeTo(g, 0.85, 300);
+    } else {
+      g.setAttribute('opacity', '0.85');
+    }
+  }
+
+  /* ============ 动画控制与速度差实现 ============ */
+  function startGlowAnimation() {
+    if (glowTimer) clearInterval(glowTimer);
+    glowTimer = setInterval(function() {
+      if (glowGrowing) {
+        glowFactor += 0.02;
+        if (glowFactor >= 1.25) glowGrowing = false;
+      } else {
+        glowFactor -= 0.02;
+        if (glowFactor <= 0.85) glowGrowing = true;
+      }
+      if (glowA && glowB) {
+        glowA.setAttribute('r', (45 * glowFactor));
+        glowB.setAttribute('r', (45 * (2 - glowFactor)));
+      }
+    }, 120);
+    intervals.push(glowTimer);
+  }
+
+  function ensureAnim() {
+    if (!animTimer) {
+      animTimer = setInterval(tick, 35);
+    }
+  }
+
+  function stopAnim() {
+    if (animTimer) {
+      clearInterval(animTimer);
+      animTimer = null;
+    }
+    if (glowTimer) {
+      clearInterval(glowTimer);
+      glowTimer = null;
+    }
+  }
+
+  function tick() {
+    var i, p, pos;
+    for (i = 0; i < particles.length; i++) {
+      p = particles[i];
+      
+      // 核心要求2：受热/上升区域附近粒子运动更快，冷却/下沉区域粒子运动更慢
+      var dynamicSpeed = p.baseSpeed;
+      if (p.zoneType === 'rising') {
+        dynamicSpeed *= 2.2; // 受热膨胀上升，速度快、充满冲力
+      } else if (p.zoneType === 'sinking') {
+        dynamicSpeed *= 0.5; // 冷却收缩下沉，运动舒缓、速度慢
+      } else {
+        dynamicSpeed *= 1.2; // 水平气流
+      }
+
+      p.phase += dynamicSpeed * 3.5;
+      if (p.phase < 0) { p.phase += p.path.total; }
+      pos = pointAt(p.path, p.phase);
+      p.el.setAttribute('cx', pos[0].toFixed(2));
+      p.el.setAttribute('cy', pos[1].toFixed(2));
+    }
+  }
+
+  function clearParticles() {
+    var i;
+    for (i = 0; i < particles.length; i++) {
+      if (particles[i].el.parentNode) {
+        particles[i].el.parentNode.removeChild(particles[i].el);
+      }
+    }
+    particles = [];
+  }
+
+  function getBaseSpeed() {
+    if (state.intensity === 'weak') return 1.0;
+    if (state.intensity === 'strong') return 2.8;
+    return 1.8; // medium
+  }
+
+  function addVerticalParticles(x, up, count) {
+    var pts = up ? [[x, 380], [x, 140]] : [[x, 140], [x, 380]];
+    var path = buildPath(pts, false);
+    var i, c;
+    var spd = getBaseSpeed();
+    var zType = up ? 'rising' : 'sinking'; // 上升为受热区(快)，下沉为冷却区(慢)
+    for (i = 0; i < count; i++) {
+      c = el('circle', { r: up ? 6 : 5, fill: up ? '#e8663c' : '#3b7dd8', opacity: '0.9' }, flowG);
+      particles.push({ el: c, path: path, phase: path.total * i / count, baseSpeed: spd, zoneType: zType });
+    }
+    ensureAnim();
+  }
+
+  function addHorizParticles(x1, x2, y, count) {
+    var pts = [[x1, y], [x2, y]];
+    var path = buildPath(pts, false);
+    var i, c;
+    var spd = getBaseSpeed();
+    for (i = 0; i < count; i++) {
+      c = el('circle', { r: 5.5, fill: '#3d7fd6', opacity: '0.9' }, flowG);
+      particles.push({ el: c, path: path, phase: path.total * i / count, baseSpeed: spd, zoneType: 'horiz' });
+    }
+    ensureAnim();
+  }
+
+  function addLoopParticles(cw, count) {
+    var pts = roundedRectPoints(240, 140, 660, 380, 50);
+    if (!cw) { pts.reverse(); }
+    var path = buildPath(pts, true);
+    var i, c, zType;
+    var spd = getBaseSpeed();
+    for (i = 0; i < count; i++) {
+      // 动态判断当前粒子位于哪个象限（左侧上升还是右侧下沉等）
+      c = el('circle', { r: 5.5, fill: '#2f6fc4', opacity: '0.9' }, flowG);
+      particles.push({ el: c, path: path, phase: path.total * i / count, baseSpeed: spd, zoneType: 'loop' });
+    }
+    ensureAnim();
+  }
+
+  function clearScene() {
+    clearParticles();
+    stopAnim();
+    if (flowG) { clear(flowG); }
+    if (labelG) { clear(labelG); }
+    if (captionG) { clear(captionG); }
+    if (isobarG) { clear(isobarG); }
+  }
+
+  function showCaption(text) {
+    clear(captionG);
+    var w = 520, h = 42;
+    var x = 450 - w / 2, y = 12;
+    var bg = el('rect', { x: x, y: y, width: w, height: h, rx: 8, fill: '#1e4e79', opacity: '0' }, captionG);
+    var t = el('text', { x: 450, y: y + 27, 'text-anchor': 'middle', 'font-size': 17, 'font-weight': 'bold', fill: '#fff', opacity: '0' }, captionG);
+    t.textContent = text;
+    fadeTo(bg, 0.92, 200);
+    fadeTo(t, 1, 200);
+  }
+
+  function pulseRect(x, y, w, h, color) {
+    var r = el('rect', { x: x, y: y, width: w, height: h, fill: color, opacity: '0' }, flowG);
+    fadeTo(r, 0.5, 300, function () {
+      fadeTo(r, 0, 400, function () {
+        if (r.parentNode) { r.parentNode.removeChild(r); }
+      });
+    });
+  }
+
+  function pulseGround() {
+    var aH = (state.A === 'heat');
+    var bH = (state.B === 'heat');
+    pulseRect(80, 460, 320, 140, aH ? '#ff5a2a' : '#2a6dff');
+    pulseRect(500, 460, 320, 140, bH ? '#ff5a2a' : '#2a6dff');
+  }
+
+  function addPressureLabel(x, y, text, isHigh, fade) {
+    var w = 88, h = 32;
+    var g = el('g', {}, labelG);
+    if (fade) { g.setAttribute('opacity', '0'); }
+    el('rect', {
+      x: x - w / 2, y: y - h / 2, width: w, height: h, rx: 6,
+      fill: '#ffffff',
+      stroke: isHigh ? '#c0392b' : '#2471a3',
+      'stroke-width': 2.5
+    }, g);
+    var t = el('text', {
+      x: x, y: y + 5, 'text-anchor': 'middle',
+      'font-size': 17, 'font-weight': 'bold',
+      fill: isHigh ? '#c0392b' : '#2471a3'
+    }, g);
+    t.textContent = text;
+    if (fade) { fadeTo(g, 1, 300); }
+  }
+
+  function buildLabels(fade) {
+    clear(labelG);
+    var aH = (state.A === 'heat');
+    var bH = (state.B === 'heat');
+
+    addPressureLabel(240, 420, aH ? '低压' : '高压', !aH, fade);
+    addPressureLabel(240, 100, aH ? '高压' : '低压', aH, fade);
+
+    addPressureLabel(660, 420, bH ? '低压' : '高压', !bH, fade);
+    addPressureLabel(660, 100, bH ? '高压' : '低压', bH, fade);
+  }
+
+  function arrow(x, y, dir, fade, color) {
+    var pts, s;
+    if (dir === 'up') {
+      pts = [[x, y - 12], [x - 10, y + 8], [x + 10, y + 8]];
+    } else if (dir === 'down') {
+      pts = [[x, y + 12], [x - 10, y - 8], [x + 10, y - 8]];
+    } else if (dir === 'left') {
+      pts = [[x - 12, y], [x + 8, y - 10], [x + 8, y + 10]];
+    } else {
+      pts = [[x + 12, y], [x - 8, y - 10], [x - 8, y + 10]];
+    }
+    s = pts[0][0] + ',' + pts[0][1] + ' ' + pts[1][0] + ',' + pts[1][1] + ' ' + pts[2][0] + ',' + pts[2][1];
+    var poly = el('polygon', { points: s, fill: color || '#3d7fd6', opacity: fade ? '0' : '0.85' }, flowG);
+    if (fade) { fadeTo(poly, 0.85, 250); }
+    return poly;
+  }
+
+  function renderQuiz() {
+    var container = $('quizContainer');
+    var html = '';
+    var i, j;
+
+    for (i = 0; i < QUESTIONS.length; i++) {
+      var q = QUESTIONS[i];
+      html += '<div class="quiz-item">';
+      html += '<div class="qt">' + q.text + '</div>';
+      html += '<div class="opts">';
+      for (j = 0; j < q.opts.length; j++) {
+        var opt = q.opts[j];
+        var isSelected = (quizAnswers[i] === opt.v);
+        html += '<button class="opt' + (isSelected ? ' active' : '') + '" data-q="' + i + '" data-v="' + opt.v + '">' + opt.t + '</button>';
+      }
+      html += '</div></div>';
+    }
+    container.innerHTML = html;
+
+    var buttons = container.querySelectorAll('.opt');
+    for (i = 0; i < buttons.length; i++) {
+      on(buttons[i], 'click', function () {
+        if (sim.playing) return;
+        var qIdx = parseInt(this.getAttribute('data-q'), 10);
+        var val = this.getAttribute('data-v');
+        quizAnswers[qIdx] = val;
+        renderQuiz();
+        updateUI();
+      });
+    }
+  }
+
+  function updateUI() {
+    var aH = (state.A === 'heat');
+    var bH = (state.B === 'heat');
+    var intName = state.intensity;
+
+    groundA.setAttribute('fill', aH ? '#f8cbb0' : '#c6dbf4');
+    groundA.setAttribute('stroke', aH ? '#d9744b' : '#5a8fd2');
+    glowA.setAttribute('fill', aH ? '#e74c3c' : '#3498db');
+
+    groundB.setAttribute('fill', bH ? '#f8cbb0' : '#c6dbf4');
+    groundB.setAttribute('stroke', bH ? '#d9744b' : '#5a8fd2');
+    glowB.setAttribute('fill', bH ? '#e74c3c' : '#3498db');
+
+    tempTextA.textContent = aH ? '受热 (暖)' : '冷却 (冷)';
+    tempTextA.setAttribute('fill', aH ? '#c0392b' : '#1f5fa8');
+    tempTextB.textContent = bH ? '受热 (暖)' : '冷却 (冷)';
+    tempTextB.setAttribute('fill', bH ? '#c0392b' : '#1f5fa8');
+
+    $('btnAh').className = 'seg' + (aH ? ' active-heat' : '');
+    $('btnAc').className = 'seg' + (!aH ? ' active-cool' : '');
+    $('btnBh').className = 'seg' + (bH ? ' active-heat' : '');
+    $('btnBc').className = 'seg' + (!bH ? ' active-cool' : '');
+
+    $('btnIntWeak').className = 'seg' + (intName === 'weak' ? ' active-intensity' : '');
+    $('btnIntMed').className = 'seg' + (intName === 'medium' ? ' active-intensity' : '');
+    $('btnIntStrong').className = 'seg' + (intName === 'strong' ? ' active-intensity' : '');
+
+    // 核心需求3改进：模拟运行完成后，不禁用条件按钮，允许学生自由修改并直接实时查看效果！
+    var locked = sim.playing;
+    $('btnAh').disabled = locked;
+    $('btnAc').disabled = locked;
+    $('btnBh').disabled = locked;
+    $('btnBc').disabled = locked;
+    $('btnIntWeak').disabled = locked;
+    $('btnIntMed').disabled = locked;
+    $('btnIntStrong').disabled = locked;
+
+    var allAnswered = (quizAnswers[0] !== null && quizAnswers[1] !== null && quizAnswers[2] !== null);
+
+    var rb = $('runBtn');
+    if (sim.playing) {
+      rb.innerHTML = '动画演示中…';
+    } else if (sim.done) {
+      rb.innerHTML = '✓ 模型已运行 (可直接修改上方条件重测)';
+    } else {
+      rb.innerHTML = '③ 运行模型验证';
+    }
+    rb.disabled = !(allAnswered && !sim.playing);
+
+    var hint = $('runHint');
+    if (sim.done) {
+      hint.innerHTML = '您现在可以直接修改上方A/B区冷热或强度，白板动画将实时响应！';
+      hint.className = 'ok';
+    } else if (sim.playing) {
+      hint.innerHTML = '正在演示因果演练，请观察舞台';
+      hint.className = '';
+    } else if (allAnswered) {
+      hint.innerHTML = '预测已就绪，可以点击上方按钮运行模型';
+      hint.className = 'ok';
+    } else {
+      hint.innerHTML = '请先完成上方全部 3 道预测题才能运行模型';
+      hint.className = '';
+    }
+
+    $('skipBtn').style.display = sim.playing ? 'block' : 'none';
+  }
+
+  function scheduleStages() {
+    var aH = (state.A === 'heat');
+    var bH = (state.B === 'heat');
+    var same = (aH === bH);
+
+    startGlowAnimation();
+
+    timeouts.push(setTimeout(function () {
+      showCaption('① 地面冷热不均（受热区粒子上升快，冷却区下沉慢）');
+      pulseGround();
+    }, 0));
+
+    timeouts.push(setTimeout(function () {
+      showCaption('② 空气垂直运动（受热区膨胀上升冲力强，冷却区收缩下沉平缓）');
+      arrow(240, 260, aH ? 'up' : 'down', true, aH ? '#e8663c' : '#3b7dd8');
+      addVerticalParticles(240, aH, 6);
+      arrow(660, 260, bH ? 'up' : 'down', true, bH ? '#e8663c' : '#3b7dd8');
+      addVerticalParticles(660, bH, 6);
+    }, 900));
+
+    timeouts.push(setTimeout(function () {
+      if (same) {
+        showCaption('③ 气压同时变化，同一水平面无气压差');
+      } else {
+        showCaption('③ 形成气压差并带动高低空等压面弯曲（见虚线等压面）');
+      }
+      buildLabels(true);
+      drawIsobars(true);
+    }, 2400));
+
+    timeouts.push(setTimeout(function () {
+      if (same) {
+        showCaption('④ 无水平气压梯度，空气不发生水平运动');
+      } else {
+        showCaption('④ 水平气流（高压流向低压，气流受热/冷影响速率不同）');
+        var cw = aH;
+        if (cw) {
+          arrow(450, 140, 'right', true, '#3d7fd6');
+          addHorizParticles(240, 660, 140, 6);
+          arrow(450, 380, 'left', true, '#3d7fd6');
+          addHorizParticles(660, 240, 380, 6);
+        } else {
+          arrow(450, 140, 'left', true, '#3d7fd6');
+          addHorizParticles(660, 240, 140, 6);
+          arrow(450, 380, 'right', true, '#3d7fd6');
+          addHorizParticles(240, 660, 380, 6);
+        }
+      }
+    }, 3800));
+
+    timeouts.push(setTimeout(function () {
+      if (same) {
+        showCaption('⑤ 未形成闭合热力环流');
+      } else {
+        showCaption('⑤ 首尾相接，形成动态闭合热力环流系统');
+        clearParticles();
+        addLoopParticles(aH, 12);
+      }
+    }, 5200));
+
+    timeouts.push(setTimeout(function () {
+      sim.playing = false;
+      sim.done = true;
+      updateUI();
+      showResultPanel();
+    }, 6200));
+  }
+
+  function runModel() {
+    if (sim.playing) return;
+    if (quizAnswers[0] === null || quizAnswers[1] === null || quizAnswers[2] === null) return;
+
+    sim.playing = true;
+    updateUI();
+    clearScene();
+    scheduleStages();
+  }
+
+  function buildFinalScene() {
+    var aH = (state.A === 'heat');
+    var bH = (state.B === 'heat');
+    var same = (aH === bH);
+
+    startGlowAnimation();
+    arrow(240, 260, aH ? 'up' : 'down', false, aH ? '#e8663c' : '#3b7dd8');
+    arrow(660, 260, bH ? 'up' : 'down', false, bH ? '#e8663c' : '#3b7dd8');
+
+    if (!same) {
+      var cw = aH;
+      if (cw) {
+        arrow(450, 140, 'right', false, '#3d7fd6');
+        arrow(450, 380, 'left', false, '#3d7fd6');
+      } else {
+        arrow(450, 140, 'left', false, '#3d7fd6');
+        arrow(450, 380, 'right', false, '#3d7fd6');
+      }
+    }
+    buildLabels(false);
+    drawIsobars(false);
+    if (same) {
+      addVerticalParticles(240, aH, 6);
+      addVerticalParticles(660, bH, 6);
+    } else {
+      addLoopParticles(aH, 12);
+    }
+  }
+
+  function skipAnim() {
+    if (!sim.playing) return;
+    clearTimers();
+    clearScene();
+    buildFinalScene();
+    sim.playing = false;
+    sim.done = true;
+    updateUI();
+    showResultPanel();
+  }
+
+  function evalAnswers() {
+    var aH = (state.A === 'heat');
+    var bH = (state.B === 'heat');
+    if (aH === bH) return ['same', 'same', 'none'];
+    if (aH) return ['low', 'high', 'ba'];
+    return ['high', 'low', 'ab'];
+  }
+
+  function getExplanationText() {
+    var aH = (state.A === 'heat');
+    var bH = (state.B === 'heat');
+
+    if (aH === bH) {
+      return '当前两侧地面受热情况相同，空气垂直运动趋势一致，同一水平面上气压处处相等，不存在水平气压梯度力，因此无法形成热力环流。<br><strong>核心规律：</strong>热力环流形成的根本原因是地面冷热不均。';
+    }
+
+    var hot = aH ? 'A' : 'B';
+    var cold = aH ? 'B' : 'A';
+    var s = '';
+    s += '① <strong>地面受热不均与速度差</strong>：' + hot + ' 区地面受热，空气迅速膨胀上升（粒子运动快）；' + cold + ' 区地面冷却，空气收缩缓慢下沉（粒子运动慢）。<br>';
+    s += '② <strong>等压面弯曲与气压对比</strong>：受热区近地面等压面向下凹陷形成<strong>相对低压</strong>，高空向上凸起形成<strong>相对高压</strong>；冷却区则相反。<br>';
+    s += '③ <strong>水平气流驱动</strong>：同一水平面上，气流总是由<strong>高压流向低压</strong>。<br>';
+    s += '④ <strong>形成环流</strong>：垂直运动与水平气流首尾相接，构成了闭合的热力环流。';
+    return s;
+  }
+
+  function openResultDrawer() {
+    var h = 0, targetH = 190;
+    var iv = setInterval(function () {
+      h += 15;
+      if (h >= targetH) { h = targetH; clearInterval(iv); }
+      resultEl.style.height = h + 'px';
+      mainEl.style.bottom = h + 'px';
+    }, 15);
+    intervals.push(iv);
+    sim.resultOpen = true;
+    $('toggleRes').innerHTML = '收起';
+  }
+
+  function closeResultDrawer() {
+    var h = parseInt(resultEl.style.height, 10) || 0;
+    var iv = setInterval(function () {
+      h -= 15;
+      if (h <= 0) { h = 0; clearInterval(iv); }
+      resultEl.style.height = h + 'px';
+      mainEl.style.bottom = h + 'px';
+    }, 15);
+    intervals.push(iv);
+    sim.resultOpen = false;
+    $('toggleRes').innerHTML = '展开';
+  }
+
+  function toggleResultDrawer() {
+    if (!sim.done) return;
+    if (sim.resultOpen) closeResultDrawer();
+    else openResultDrawer();
+  }
+
+  function showResultPanel() {
+    var correct = evalAnswers();
+    var names = {
+      high: '更高', low: '更低', same: '相同',
+      ab: 'A → B', ba: 'B → A', none: '无水平气流'
+    };
+    var qs = [
+      '1. 近地面：A 处气压比 B 处',
+      '2. 高空：A 处上空气压比 B 处上空',
+      '3. 近地面水平气流方向'
+    ];
+
+    var body = $('resBody');
+    body.innerHTML = '';
+
+    var rows = [];
+    var i, ok, d, html;
+    for (i = 0; i < 3; i++) {
+      ok = (quizAnswers[i] === correct[i]);
+      html = '<span class="rq">' + qs[i] + '</span>' +
+             '<span class="ry">您的预测：<b>' + names[quizAnswers[i]] + '</b></span>' +
+             '<span class="rm ' + (ok ? 'ok' : 'no') + '">' + (ok ? '✓ 正确' : '✗ 需修正') + '</span>' +
+             '<span class="rr">实际规律：<b>' + names[correct[i]] + '</b></span>';
+      d = document.createElement('div');
+      d.className = 'resrow';
+      d.style.display = 'none';
+      d.innerHTML = html;
+      body.appendChild(d);
+      rows.push(d);
+    }
+
+    var exp = document.createElement('div');
+    exp.className = 'resexp';
+    exp.style.display = 'none';
+    exp.innerHTML = getExplanationText();
+    body.appendChild(exp);
+
+    openResultDrawer();
+
+    var idx = 0;
+    function revealNext() {
+      if (idx < rows.length) {
+        rows[idx].style.display = 'block';
+        idx++;
+        timeouts.push(setTimeout(revealNext, 250));
+      } else {
+        exp.style.display = 'block';
+      }
+    }
+    timeouts.push(setTimeout(revealNext, 250));
+  }
+
+  function resetAll() {
+    clearTimers();
+    clearScene();
+    stopAnim();
+    particles = [];
+
+    sim.playing = false;
+    sim.done = false;
+    sim.resultOpen = false;
+
+    quizAnswers = [null, null, null];
+    state.A = 'heat';
+    state.B = 'cool';
+    state.intensity = 'medium';
+
+    resultEl.style.height = '0px';
+    mainEl.style.bottom = '0px';
+    $('resBody').innerHTML = '';
+    $('toggleRes').innerHTML = '收起';
+
+    renderQuiz();
+    updateUI();
+  }
+
+  /* ============ 核心修改：当模拟已完成后，用户再次点击修改条件时，支持即时重新演练动画 ============ */
+  function handleConditionChange(type, val) {
+    if (sim.playing) return;
+    if (type === 'A') state.A = val;
+    if (type === 'B') state.B = val;
+    if (type === 'intensity') state.intensity = val;
+
+    updateUI();
+
+    // 如果之前已经完成了模型运行，用户更改了条件，则无缝实时刷新场景与动画，无需重新答题
+    if (sim.done) {
+      clearTimers();
+      clearScene();
+      buildFinalScene(); // 或直接实时刷新运行
+    }
+  }
+
+  function bindEvents() {
+    on($('btnAh'), 'click', function () { handleConditionChange('A', 'heat'); });
+    on($('btnAc'), 'click', function () { handleConditionChange('A', 'cool'); });
+    on($('btnBh'), 'click', function () { handleConditionChange('B', 'heat'); });
+    on($('btnBc'), 'click', function () { handleConditionChange('B', 'cool'); });
+
+    on($('btnIntWeak'), 'click', function () { handleConditionChange('intensity', 'weak'); });
+    on($('btnIntMed'), 'click', function () { handleConditionChange('intensity', 'medium'); });
+    on($('btnIntStrong'), 'click', function () { handleConditionChange('intensity', 'strong'); });
+
+    on($('runBtn'), 'click', runModel);
+    on($('skipBtn'), 'click', skipAnim);
+    on($('resetBtn'), 'click', resetAll);
+    on($('toggleRes'), 'click', toggleResultDrawer);
+  }
+
+  function init() {
+    svg = $('svg');
+    mainEl = $('main');
+    resultEl = $('result');
+
+    buildBase();
+    bindEvents();
+    renderQuiz();
+    updateUI();
+  }
+
+  init();
+
+})();
+</script>
+</body>
+</html>
