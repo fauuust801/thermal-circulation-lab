@@ -1,0 +1,222 @@
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; width: 100%; height: 100%;
+  font-family: "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+  background: #eef3f8;
+  color: #22303f;
+  overflow: hidden;
+}
+#app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+#topbar {
+  height: 52px;
+  background: #1e4e79;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  flex-shrink: 0;
+}
+#topbar .title { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
+#topbar .sub { font-size: 14px; color: #b9d4ea; font-weight: bold; }
+
+#main {
+  flex: 1;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 铺满主页的左侧控制面板 */
+#sidebar {
+  width: 36%;
+  height: 100%;
+  padding: 12px;
+  overflow-y: auto;
+  background: #f7fafc;
+  border-right: 2px solid #d3dee8;
+  flex-shrink: 0;
+}
+
+/* 铺满主页的右侧舞台 */
+#stage {
+  flex: 1;
+  height: 100%;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef3f8;
+}
+#svg { width: 100%; height: 100%; display: block; max-height: 100%; }
+
+.card {
+  background: #fff;
+  border: 1px solid #d3dee8;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+.ct {
+  font-size: 16px; font-weight: bold; color: #1e4e79;
+  margin-bottom: 8px;
+  border-bottom: 2px solid #ebf5fb;
+  padding-bottom: 6px;
+}
+
+table.ctrl { border-collapse: collapse; width: 100%; }
+table.ctrl td { padding: 4px 0; vertical-align: middle; }
+table.ctrl td.lbl { width: 90px; font-size: 15px; color: #33475b; font-weight: bold; }
+
+.seg {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: bold;
+  padding: 0 12px;
+  min-width: 76px; height: 42px;
+  border: 1px solid #b9c9d8;
+  background: #f7fafc;
+  color: #33475b;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 6px;
+}
+.seg.active-heat { background: #e8663c; border-color: #c8502a; color: #fff; }
+.seg.active-cool { background: #3b7dd8; border-color: #2a60b0; color: #fff; }
+.seg.active-intensity { background: #27ae60; border-color: #1e8449; color: #fff; }
+.seg:disabled { opacity: 0.45; cursor: default; }
+
+.quiz-item {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+.quiz-item:last-child { border-bottom: none; margin-bottom: 0; }
+.qt { font-size: 15px; color: #22303f; line-height: 1.4; margin-bottom: 6px; font-weight: bold; }
+.opts { font-size: 0; display: flex; gap: 6px; }
+.opt {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: bold;
+  height: 40px;
+  flex: 1;
+  border: 1px solid #b9c9d8;
+  background: #f7fafc;
+  color: #33475b;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 0 2px;
+  white-space: nowrap;
+}
+.opt.active {
+  background: #1e4e79; border-color: #163a5a; color: #fff;
+}
+.opt:disabled { opacity: 0.6; cursor: default; }
+
+#runBtn {
+  display: block; width: 100%;
+  font-family: inherit; font-size: 18px; font-weight: bold;
+  height: 52px;
+  border: none; border-radius: 8px;
+  background: #2e8b57; color: #fff;
+  cursor: pointer;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+#runBtn:disabled { background: #b9c6cf; cursor: default; }
+
+#runHint {
+  font-size: 14px; font-weight: bold; text-align: center; color: #66788a;
+  margin: 0 0 10px; line-height: 1.4;
+}
+#runHint.ok { color: #2e8b57; }
+
+.btn-row { display: flex; gap: 8px; margin-bottom: 8px; }
+#skipBtn, #resetBtn {
+  flex: 1;
+  font-family: inherit; font-size: 15px; font-weight: bold;
+  height: 42px;
+  border-radius: 6px; cursor: pointer;
+}
+#skipBtn { border: 1px solid #e0a800; background: #fff8e1; color: #8a6d00; }
+#resetBtn { border: 1px solid #b9c9d8; background: #fff; color: #33475b; }
+
+/* 底部结果抽屉面板 */
+#result {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 0; overflow: hidden;
+  background: #fff;
+  border-top: 3px solid #1e4e79;
+  z-index: 10;
+  transition: height 0.25s ease;
+}
+#resBar {
+  position: relative; height: 42px;
+  background: #f2f7fb;
+  border-bottom: 1px solid #dbe6ef;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+#resTitle {
+  font-size: 16px; font-weight: bold; color: #1e4e79;
+}
+#toggleRes {
+  font-family: inherit; font-size: 14px; font-weight: bold;
+  height: 32px; padding: 0 14px;
+  border: 1px solid #b9c9d8; background: #fff;
+  border-radius: 5px; cursor: pointer; color: #33475b;
+}
+#resBody {
+  position: absolute; left: 0; right: 0; top: 42px; bottom: 0;
+  padding: 12px 20px;
+  overflow-y: auto;
+}
+.resrow { font-size: 14px; font-weight: bold; line-height: 1.8; white-space: nowrap; }
+.rq { display: inline-block; width: 34%; color: #33475b; }
+.ry { display: inline-block; width: 24%; color: #4a5b6c; }
+.rm { display: inline-block; width: 16%; font-weight: bold; }
+.rr { display: inline-block; width: 24%; color: #4a5b6c; }
+.ok { color: #1e8449; }
+.no { color: #c0392b; }
+.resexp {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #f6fafd;
+  border-left: 5px solid #1e4e79;
+  font-size: 14px; line-height: 1.8; color: #2c3e50;
+}
+
+/* 手机端竖屏媒体查询适配 (Mobile Responsive) */
+@media (max-width: 900px) {
+  html, body { overflow: auto; height: auto; }
+  #app { height: auto; position: relative; }
+  #main {
+    flex-direction: column;
+    position: relative;
+    overflow: visible;
+  }
+  #sidebar {
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 2px solid #d3dee8;
+  }
+  #stage {
+    width: 100%;
+    height: 420px;
+    position: relative;
+  }
+  #result {
+    position: relative;
+    height: auto !important;
+  }
+}

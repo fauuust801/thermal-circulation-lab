@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>热力环流实验室 - 模块化重构版</title>
+<!-- 引入独立样式文件 -->
+<link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+<div id="app">
+
+  <div id="topbar">
+    <span class="title">热力环流实验室</span>
+    <span class="sub">希沃白板教学互动版</span>
+  </div>
+
+  <div id="main">
+    <!-- 左侧控制面板 -->
+    <div id="sidebar">
+      <div class="card">
+        <div class="ct">① 实验条件与强度设置</div>
+        <table class="ctrl">
+          <tr>
+            <td class="lbl">A 区地面</td>
+            <td><button id="btnAh" class="seg">受热</button></td>
+            <td><button id="btnAc" class="seg">冷却</button></td>
+          </tr>
+          <tr>
+            <td class="lbl">B 区地面</td>
+            <td><button id="btnBh" class="seg">受热</button></td>
+            <td><button id="btnBc" class="seg">冷却</button></td>
+          </tr>
+          <tr>
+            <td class="lbl">冷热强度</td>
+            <td colspan="2">
+              <button id="btnIntWeak" class="seg" style="min-width:60px;">弱</button>
+              <button id="btnIntMed" class="seg" style="min-width:60px;">中</button>
+              <button id="btnIntStrong" class="seg" style="min-width:60px;">强</button>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="ct">② 先预测，再运行模拟</div>
+        <div id="quizContainer"></div>
+      </div>
+
+      <button id="runBtn" disabled>③ 运行模型验证</button>
+      <div id="runHint">请先完成上方 3 道预测题</div>
+      
+      <div class="btn-row">
+        <button id="skipBtn" style="display:none;">跳过动画</button>
+        <button id="resetBtn">重置全部</button>
+      </div>
+    </div>
+
+    <!-- 右侧动态舞台 -->
+    <div id="stage">
+      <svg id="svg" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+  </div>
+
+  <!-- 底部结果抽屉面板 -->
+  <div id="result">
+    <div id="resBar">
+      <span id="resTitle">预测与结果对照分析</span>
+      <button id="toggleRes">收起</button>
+    </div>
+    <div id="resBody"></div>
+  </div>
+
+</div>
+
+<!-- 引入 ES Module 主入口 -->
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
