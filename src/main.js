@@ -1,9 +1,7 @@
-// src/main.js
 import { renderQuiz } from './quiz.js';
 import { 
   initSimulator, 
   updateVisuals, 
-  renderTerrain,
   scheduleStages, 
   buildFinalScene, 
   clearScene, 
@@ -15,47 +13,6 @@ import {
 
 (function () {
   'use strict';
-
-  var currentMode = 'basic';
-  var currentScenarioKey = 'seaLandDay';
-
-  var SCENARIOS = {
-    seaLandDay: {
-      name: '海陆风（白天）',
-      desc: '白天太阳辐射下，陆地增温比海洋快，陆地气温高、海洋气温低。',
-      stateA: 'cool', stateB: 'heat',
-      zoneALabel: 'A: 海洋 (冷)', zoneBLabel: 'B: 陆地 (热)',
-      terrain: 'sealand'
-    },
-    seaLandNight: {
-      name: '海陆风（夜晚）',
-      desc: '夜晚陆地降温比海洋快，陆地气温低、海洋气温高。',
-      stateA: 'heat', stateB: 'cool',
-      zoneALabel: 'A: 海洋 (热)', zoneBLabel: 'B: 陆地 (冷)',
-      terrain: 'sealand'
-    },
-    mountainDay: {
-      name: '山谷风（白天·谷风）',
-      desc: '白天山坡受热快，空气增温沿山坡上升；谷地同高度增温慢。',
-      stateA: 'cool', stateB: 'heat',
-      zoneALabel: 'A: 谷底 (冷)', zoneBLabel: 'B: 山坡 (热)',
-      terrain: 'mountain'
-    },
-    mountainNight: {
-      name: '山谷风（夜晚·山风）',
-      desc: '夜晚山坡辐射冷却迅速，冷空气沿山坡下滑注入谷底。',
-      stateA: 'heat', stateB: 'cool',
-      zoneALabel: 'A: 谷底 (热)', zoneBLabel: 'B: 山坡 (冷)',
-      terrain: 'mountain'
-    },
-    urbanIsland: {
-      name: '城市热岛效应',
-      desc: '城区人口密集、热源多形成“热岛”；郊区气温较低。',
-      stateA: 'cool', stateB: 'heat',
-      zoneALabel: 'A: 郊区 (冷)', zoneBLabel: 'B: 城区 (热)',
-      terrain: 'urban'
-    }
-  };
 
   var state = { A: 'heat', B: 'cool', intensity: 'medium' };
   var quizAnswers = [null, null, null];
@@ -109,7 +66,7 @@ import {
 
     var hint = $('runHint');
     if (sim.done) {
-      hint.innerHTML = '模拟完成！您可以直接修改上方条件观察白板实时响应。';
+      hint.innerHTML = '您现在可以直接修改上方A/B区条件，白板动画将实时响应！';
       hint.className = 'ok';
     } else if (sim.playing) {
       hint.innerHTML = '正在演示因果演练，请观察舞台';
@@ -131,10 +88,8 @@ import {
 
     sim.playing = true;
     updateUI();
-    renderTerrain(currentMode, currentScenarioKey, SCENARIOS, state, sim);
-    clearScene(currentMode, currentScenarioKey, SCENARIOS, state, sim);
-    
-    scheduleStages(state, currentMode, currentScenarioKey, SCENARIOS, function() {
+    clearScene();
+    scheduleStages(state, function() {
       sim.playing = false;
       sim.done = true;
       updateUI();
@@ -145,8 +100,8 @@ import {
   function skipAnim() {
     if (!sim.playing) return;
     clearTimers();
-    clearScene(currentMode, currentScenarioKey, SCENARIOS, state, sim);
-    buildFinalScene(state, currentMode, currentScenarioKey, SCENARIOS);
+    clearScene();
+    buildFinalScene(state);
     sim.playing = false;
     sim.done = true;
     updateUI();
@@ -154,7 +109,7 @@ import {
   }
 
   function openResultDrawer() {
-    var h = 0, targetH = 220;
+    var h = 0, targetH = 210;
     var iv = setInterval(function () {
       h += 15;
       if (h >= targetH) { h = targetH; clearInterval(iv); }
@@ -220,7 +175,7 @@ import {
     var exp = document.createElement('div');
     exp.className = 'resexp';
     exp.style.display = 'none';
-    exp.innerHTML = getExplanationText(state, currentMode, currentScenarioKey);
+    exp.innerHTML = getExplanationText(state);
     body.appendChild(exp);
 
     openResultDrawer();
@@ -242,7 +197,7 @@ import {
 
   function resetAll() {
     clearTimers();
-    clearScene(currentMode, currentScenarioKey, SCENARIOS, state, sim);
+    clearScene();
     stopAnim();
 
     sim.playing = false;
@@ -250,12 +205,8 @@ import {
     sim.resultOpen = false;
 
     quizAnswers = [null, null, null];
-    if (currentMode === 'basic') {
-      state.A = 'heat';
-      state.B = 'cool';
-    } else {
-      applyScenarioState(currentScenarioKey);
-    }
+    state.A = 'heat';
+    state.B = 'cool';
     state.intensity = 'medium';
 
     resultEl.style.height = '0px';
@@ -264,61 +215,7 @@ import {
     $('toggleRes').innerHTML = '收起';
 
     refreshQuiz();
-    renderTerrain(currentMode, currentScenarioKey, SCENARIOS, state, sim);
     updateUI();
-  }
-
-  window.switchMode = function(mode) {
-    if (sim.playing) return;
-    currentMode = mode;
-
-    if (mode === 'basic') {
-      $('modeBasicBtn').className = 'mode-btn active';
-      $('modeScenarioBtn').className = 'mode-btn';
-      $('basicCtrlCard').style.display = 'block';
-      $('scenarioCtrlCard').style.display = 'none';
-      state.A = 'heat';
-      state.B = 'cool';
-    } else {
-      $('modeBasicBtn').className = 'mode-btn';
-      $('modeScenarioBtn').className = 'mode-btn active';
-      $('basicCtrlCard').style.display = 'none';
-      $('scenarioCtrlCard').style.display = 'block';
-      onScenarioChange();
-    }
-
-    quizAnswers = [null, null, null];
-    renderTerrain(currentMode, currentScenarioKey, SCENARIOS, state, sim);
-    refreshQuiz();
-    updateUI();
-    clearScene(currentMode, currentScenarioKey, SCENARIOS, state, sim);
-    if (sim.done) {
-      sim.done = false;
-      closeResultDrawer();
-    }
-  };
-
-  function onScenarioChange() {
-    var selKey = $('scenarioSelect').value;
-    currentScenarioKey = selKey;
-    var sc = SCENARIOS[selKey];
-    $('scenarioDesc').innerHTML = sc.desc;
-    applyScenarioState(selKey);
-    quizAnswers = [null, null, null];
-    renderTerrain(currentMode, currentScenarioKey, SCENARIOS, state, sim);
-    refreshQuiz();
-    updateUI();
-    clearScene(currentMode, currentScenarioKey, SCENARIOS, state, sim);
-    if (sim.done) {
-      sim.done = false;
-      closeResultDrawer();
-    }
-  }
-
-  function applyScenarioState(key) {
-    var sc = SCENARIOS[key];
-    state.A = sc.stateA;
-    state.B = sc.stateB;
   }
 
   function handleConditionChange(type, val) {
@@ -328,12 +225,11 @@ import {
     if (type === 'intensity') state.intensity = val;
 
     updateUI();
-    renderTerrain(currentMode, currentScenarioKey, SCENARIOS, state, sim);
 
     if (sim.done) {
       clearTimers();
-      clearScene(currentMode, currentScenarioKey, SCENARIOS, state, sim);
-      buildFinalScene(state, currentMode, currentScenarioKey, SCENARIOS);
+      clearScene();
+      buildFinalScene(state);
     }
   }
 
@@ -357,8 +253,6 @@ import {
     on($('btnIntMed'), 'click', function () { handleConditionChange('intensity', 'medium'); });
     on($('btnIntStrong'), 'click', function () { handleConditionChange('intensity', 'strong'); });
 
-    on($('scenarioSelect'), 'change', onScenarioChange);
-
     on($('runBtn'), 'click', runModel);
     on($('skipBtn'), 'click', skipAnim);
     on($('resetBtn'), 'click', resetAll);
@@ -370,7 +264,6 @@ import {
     resultEl = $('result');
 
     initSimulator();
-    renderTerrain(currentMode, currentScenarioKey, SCENARIOS, state, sim);
     bindEvents();
     refreshQuiz();
     updateUI();

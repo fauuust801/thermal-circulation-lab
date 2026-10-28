@@ -4,8 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>热力环流实验室 - 地形与情境拓展版</title>
-<!-- 引入样式文件 -->
+<title>热力环流实验室 - 白板与手机全适配版</title>
 <link rel="stylesheet" href="./src/style.css">
 </head>
 <body>
@@ -17,53 +16,31 @@
   </div>
 
   <div id="main">
-    <!-- 左侧控制面板 -->
+    <!-- 左侧控制面板（铺满一屏） -->
     <div id="sidebar">
 
-      <!-- 模式切换按键 -->
-      <div class="mode-switch">
-        <button id="modeBasicBtn" class="mode-btn active" onclick="window.switchMode('basic')">🔬 基础热力环流</button>
-        <button id="modeScenarioBtn" class="mode-btn" onclick="window.switchMode('scenario')">🌍 迁移应用情境</button>
-      </div>
-
-      <!-- 基础实验条件设置卡片 -->
-      <div id="basicCtrlCard" class="card">
-        <div class="ct">① 基础实验条件设置</div>
+      <div class="card">
+        <div class="ct">① 实验条件与强度设置</div>
         <table class="ctrl">
           <tr>
-            <td class="lbl" id="labelZoneA">A 区地面</td>
+            <td class="lbl">A 区地面</td>
             <td><button id="btnAh" class="seg">受热</button></td>
             <td><button id="btnAc" class="seg">冷却</button></td>
           </tr>
           <tr>
-            <td class="lbl" id="labelZoneB">B 区地面</td>
+            <td class="lbl">B 区地面</td>
             <td><button id="btnBh" class="seg">受热</button></td>
             <td><button id="btnBc" class="seg">冷却</button></td>
           </tr>
           <tr>
             <td class="lbl">冷热强度</td>
             <td colspan="2">
-              <button id="btnIntWeak" class="seg" style="min-width:65px;">弱</button>
-              <button id="btnIntMed" class="seg" style="min-width:65px;">中</button>
-              <button id="btnIntStrong" class="seg" style="min-width:65px;">强</button>
+              <button id="btnIntWeak" class="seg" style="min-width:60px;">弱</button>
+              <button id="btnIntMed" class="seg" style="min-width:60px;">中</button>
+              <button id="btnIntStrong" class="seg" style="min-width:60px;">强</button>
             </td>
           </tr>
         </table>
-      </div>
-
-      <!-- 迁移应用情境选择卡片 (默认隐藏) -->
-      <div id="scenarioCtrlCard" class="card" style="display:none;">
-        <div class="ct">① 选择实际地理情境</div>
-        <select id="scenarioSelect" class="form-control">
-          <option value="seaLandDay">🌊 海陆风：白天（海风）</option>
-          <option value="seaLandNight">🌙 海陆风：夜晚（陆风）</option>
-          <option value="mountainDay">⛰️ 山谷风：白天（谷风）</option>
-          <option value="mountainNight">🌃 山谷风：夜晚（山风）</option>
-          <option value="urbanIsland">🏙️ 城市热岛效应（城郊环流）</option>
-        </select>
-        <div id="scenarioDesc" style="font-size:14px; color:#555; line-height:1.5; margin-top:6px; font-weight:bold;">
-          白天太阳辐射下，陆地增温比海洋快，陆地气温高、海洋气温低。
-        </div>
       </div>
 
       <div class="card">
@@ -80,7 +57,7 @@
       </div>
     </div>
 
-    <!-- 右侧动态舞台 -->
+    <!-- 右侧动态舞台（铺满一屏） -->
     <div id="stage">
       <svg id="svg" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
@@ -97,7 +74,6 @@
 
 </div>
 
-<!-- 引入 ES Module 主入口 -->
 <script type="module" src="./src/main.js"></script>
 </body>
 </html>
